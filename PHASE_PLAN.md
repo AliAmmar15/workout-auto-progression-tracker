@@ -22,10 +22,10 @@ Phase 2 — Backend Core
 
 Tasks
 
-[ ] Setup FastAPI server
-[ ] Setup PostgreSQL connection
-[ ] Setup SQLAlchemy models
-[ ] Setup Pydantic schemas
+[x] Setup FastAPI server
+[x] Setup PostgreSQL connection
+[x] Setup SQLAlchemy models
+[x] Setup Pydantic schemas
 
 --------------------------------
 
@@ -33,10 +33,10 @@ Phase 3 — Workout Logging
 
 Tasks
 
-[ ] Create exercises table
-[ ] Create workouts table
-[ ] Create workout_sets table
-[ ] Implement workout logging API
+[x] Create exercises table
+[x] Create workouts table
+[x] Create workout_sets table
+[x] Implement workout logging API
 
 --------------------------------
 
