@@ -9,6 +9,7 @@ class ProgressionResponse(BaseModel):
     recent_sets: list[dict]
     trend: str
     plateau_detected: bool
+    is_pr: bool
 
 
 class RecommendationResponse(BaseModel):
@@ -16,3 +17,4 @@ class RecommendationResponse(BaseModel):
     recommended_weight: float
     recommended_reps: int
     reasoning: str
+    is_deload: bool

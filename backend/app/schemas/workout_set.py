@@ -22,6 +22,8 @@ class WorkoutSetUpdate(BaseModel):
 
 # --- Response schemas ---
 
+from app.schemas.exercise import ExerciseResponse
+
 class WorkoutSetResponse(BaseModel):
     id: int
     workout_id: int
@@ -31,5 +33,6 @@ class WorkoutSetResponse(BaseModel):
     reps: int
     rpe: Optional[int]
     created_at: datetime
+    exercise: Optional[ExerciseResponse] = None
 
     model_config = {"from_attributes": True}

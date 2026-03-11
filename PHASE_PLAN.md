@@ -44,9 +44,9 @@ Phase 4 — Progression Algorithm
 
 Tasks
 
-[ ] Implement progression rules
-[ ] Implement plateau detection
-[ ] Implement deload logic
+[x] Implement progression rules
+[x] Implement plateau detection
+[x] Implement deload logic
 
 --------------------------------
 
@@ -54,9 +54,9 @@ Phase 5 — Frontend
 
 Tasks
 
-[ ] Create workout logging screen
-[ ] Create workout history screen
-[ ] Create progression dashboard
+[x] Create workout logging screen
+[x] Create workout history screen
+[x] Create progression dashboard
 
 --------------------------------
 

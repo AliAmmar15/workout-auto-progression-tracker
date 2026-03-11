@@ -1,7 +1,7 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from app.api.routes import auth, users, exercises, workouts, workout_sets
+from app.api.routes import auth, users, exercises, workouts, workout_sets, progression
 
 app = FastAPI(
     title="Workout Progress Tracker",
@@ -24,6 +24,7 @@ app.include_router(users.router, prefix="/api/v1/users", tags=["Users"])
 app.include_router(exercises.router, prefix="/api/v1/exercises", tags=["Exercises"])
 app.include_router(workouts.router, prefix="/api/v1/workouts", tags=["Workouts"])
 app.include_router(workout_sets.router, prefix="/api/v1/workouts", tags=["Workout Sets"])
+app.include_router(progression.router, prefix="/api/v1/exercises", tags=["Progression"])
 
 
 @app.get("/health", tags=["Health"])

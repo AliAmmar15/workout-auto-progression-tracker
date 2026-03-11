@@ -5,6 +5,7 @@ from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.workout import Workout
+from app.models.workout_set import WorkoutSet
 from app.schemas.workout import WorkoutCreate, WorkoutUpdate
 
 
@@ -38,7 +39,7 @@ def get_workout_by_id(db: Session, workout_id: int, user_id: int) -> Workout:
     """
     workout = (
         db.query(Workout)
-        .options(joinedload(Workout.sets))
+        .options(joinedload(Workout.sets).joinedload(WorkoutSet.exercise))
         .filter(Workout.id == workout_id, Workout.user_id == user_id)
         .first()
     )
