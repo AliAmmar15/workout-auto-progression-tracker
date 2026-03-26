@@ -274,10 +274,86 @@ Known Issues:
 
 Development Log:
 
-Phase 6 – Testing (In Progress):
+Phase 6 – Testing (Complete):
 
 Task 1 – Unit Tests:
 Initialized a test setup using `pytest` and configured `pytest-cov` to assess testing completion boundaries. Addressed the requirement laid out in `DEVELOPMENT_RULES.md` by targeting the `app/services` component module (which represents our main business logic bounds). Using the SQLite memory layer (`sqlite:///:memory:`) allowed isolated, predictable integration tests without risking DB collisions. Auth, Exercise, User, Workouts, Sets, Progression, and the unified Workout Logging logic have full validation testing. End tests yielded a perfect `99%` coverage mark in the service application boundaries, vastly overperforming the >80% criteria constraint bounds.
+
+---
+
+Phase 7 – Requirements Gap Remediation (Complete):
+
+Task 1 – Progression Algorithm Refactor (Gap 2):
+Rewrote `backend/app/services/progression_service.py` to fully comply with the spec's progression rules. Added 3 explicit pure functions: `evaluate_workout_success(actual_reps, target_reps)` classifies each set as "success" (0 missed), "partial" (≤2 missed), or "failure" (>2 missed). `calculate_next_weight(current_weight, outcome)` applies percentage-based changes: +5% for success, 0% for partial, −5% for failure. `detect_plateau(session_outcomes)` returns True if the last 3 outcomes are all non-success. The orchestrators `analyze_progression()` and `generate_recommendation()` now use these pure functions instead of the old weight-comparison model. `target_reps` (default: 5) is now an explicit parameter. Updated `test_progression_service.py` with 27 tests covering all 3 pure functions in isolation (boundary conditions, edge cases) plus updated integration tests for the orchestrators. Impact: progression logic now matches spec exactly, is fully deterministic, and has explicit named functions as required.
+
+Task 2 – Regression Test Suite (Gap 3):
+Created `backend/tests/test_regression.py` with 5 multi-session scenarios that guard the progression engine against regressions: (1) consecutive successes → weight increases every session; (2) consecutive failures → weight decreases every session; (3) 3 partials → plateau fires → deload triggered; (4) post-deload success → positive progression resumes; (5) PR detection remains independent of reps outcome. Each test includes a "Regression guard" comment documenting exactly what algorithmic regression it protects against.
+
+Task 3 – Frontend Migration to React Native / Expo / TypeScript / Zustand (Gap 1):
+Scaffolded a new Expo + TypeScript app at `frontend/WorkoutTracker` using `create-expo-app --template blank-typescript`. Added Zustand (`useAuthStore.ts`) for centralized auth state management (token, user, logout). Created a fully typed API service layer (`src/services/api.ts`) covering all backend endpoints: auth (login/register), exercises (list), workouts (list/log), and progression/recommendation. Implemented 3 screens in TypeScript: `WorkoutLogScreen.tsx` (exercise picker + dynamic set builder + submit), `WorkoutHistoryScreen.tsx` (FlatList with pull-to-refresh, date formatting, nested sets), and `ProgressionDashboard.tsx` (exercise selector, trend card, outcome badges, recommendation card with deload styling). Wired `App.tsx` with React Navigation bottom tabs, SafeAreaProvider, and custom dark tab bar. The existing Vanilla JS frontend in `frontend/` is preserved for reference; the Expo app in `frontend/WorkoutTracker/` is the primary mobile-first entry point.
+
+File Inventory Additions (Phase 7):
+
+backend/app/services/progression_service.py – Refactored. Now exports 5 functions: evaluate_workout_success, calculate_next_weight, detect_plateau (pure), analyze_progression, generate_recommendation (DB orchestrators). All logic is reps-based and spec-compliant.
+backend/tests/test_progression_service.py – Rewritten. 27 tests organized in 5 classes covering all pure functions and integration scenarios.
+backend/tests/test_regression.py – New file. 5 multi-session regression scenarios protecting the progression engine.
+frontend/WorkoutTracker/ – New Expo + TypeScript React Native app. Entry point: App.tsx.
+frontend/WorkoutTracker/src/store/useAuthStore.ts – Zustand store for JWT token and user profile state.
+frontend/WorkoutTracker/src/services/api.ts – Typed TypeScript API client for all backend endpoints.
+frontend/WorkoutTracker/src/screens/DashboardScreen.tsx – Main dashboard screen with monthly progress ring, level & achievements, stat cards, and progress tracker.
+frontend/WorkoutTracker/src/screens/PlansScreen.tsx – Workout plans screen with grouped cards, exercise pills, and action toggles.
+frontend/WorkoutTracker/src/screens/ExerciseLibraryScreen.tsx – Exercise library screen with muscle group filters and detailed exercise cards.
+frontend/WorkoutTracker/src/screens/ProfileScreen.tsx – [NEW] User profile and settings screen.
+
+---
+
+Current Phase: Phase 8 – UI Screen Implementation (Complete)
+
+Completed UI Screens:
+[x] AuthScreen (Login + Register)
+[x] WorkoutLogScreen
+[x] WorkoutHistoryScreen
+[x] ProgressionDashboard
+[x] DashboardScreen
+[x] PlansScreen
+[x] ExerciseLibraryScreen
+[x] ProfileScreen
+
+---
+
+Development Log:
+
+Phase 8 – UI Screen Implementation:
+
+Task: Implemented Plans and Exercise Library Screens
+
+Built PlansScreen.tsx and ExerciseLibraryScreen.tsx to match screenshots 4 and 10.
+Wired both screens into App.tsx as primary tabs alongside Home, Log, and History.
+
+What was built (PlansScreen):
+- Header section: "📅 Workout Plans" title
+- Toolbar: "+ Create Plan", "Options ▾" buttons, and a Search input
+- Grouped list: Collapsible "Default Plans" section with an "Admin" badge and "Week 1-4" label
+- Plan Cards: Detailed cards mapping days to a list of exercises. Implemented an `ExercisePill` component that extracts initials from exercise names to replicate the avatar/image look without needing actual image assets. Also included "Show more/less" native toggles and action buttons (Play, Clone).
+
+What was built (ExerciseLibraryScreen):
+- Header section: "📚 Exercise Library" title
+- Toolbar & Search: "+ Add Exercise", "Filters ▾", "Select Plan", and search bar
+- Filters: Horizontal scrollable list of muscle group filter chips. Clicking "Filters ▾" toggles this row visibility.
+- Exercise Grid: 2-column grid of `ExerciseCard`s displaying an image placeholder (with initials), dumbbell badge, title, primary muscle group, and metadata (weight, reps, sets).
+- Logic: Hooked up to the real `getExercises(token)` API endpoint. Implemented client-side search and muscle group filtering, alongside robust empty states and loading indicators.
+
+Task: Implemented Profile Screen
+
+Built ProfileScreen.tsx to match screenshots 11 and 12.
+
+What was built (ProfileScreen):
+- User Card: Central avatar with 'PRO' badge, username, email, and "Member since Month Year" populated from Zanzibar APIs via Zustand store `user` data.
+- Statistics Row: High-level overview of Workouts, Volume (kg), and Streaks.
+- Settings Sections: Expandable/list views grouped into logical categories: Account (Password, Privacy, Subscription), Preferences (Dark Mode, Notifications toggle switches, Units, Language), and Danger Zone (Logout, Delete Account).
+- The Log Out button correctly calls `logout()` from the Zustand store, clearing the token and redirecting the user seamlessly back to AuthScreen.
+
+All UI screens across Phase 8 adhere perfectly to the dark mode aesthetic (#12151e background, #1a1f2e cards, #00d4aa accents) to match the provided MOCKUP designs.
 
 ---
 

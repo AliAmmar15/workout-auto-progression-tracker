@@ -64,10 +64,20 @@ Phase 6 — Testing
 
 Tasks
 
-[ ] Unit tests
-[ ] Integration tests
-[ ] Edge case tests
+[x] Unit tests
+[x] Integration tests
+[x] Edge case tests
 
 Coverage Target
 
 80%+
+
+--------------------------------
+
+Phase 7 — Requirements Gap Remediation
+
+Tasks
+
+[x] Refactor progression algorithm with reps-based pure functions
+[x] Add regression test suite
+[x] Migrate frontend to React Native / Expo / TypeScript / Zustand

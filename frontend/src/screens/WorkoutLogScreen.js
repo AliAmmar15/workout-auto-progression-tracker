@@ -120,6 +120,7 @@ export async function renderWorkoutLogScreen() {
       btn.addEventListener('click', (e) => {
         const idx = parseInt(e.currentTarget.getAttribute('data-index'));
         sets.splice(idx, 1);
+        sets = sets.map((set, i) => ({ ...set, set_number: i + 1 }));
         renderSets();
       });
     });
@@ -171,9 +172,9 @@ export async function renderWorkoutLogScreen() {
 
     try {
       // Strip client-side only properties (exercise_name) before sending to API
-      const payloadSets = sets.map(s => {
+      const payloadSets = sets.map((s, index) => {
         const { exercise_name, ...rest } = s;
-        return rest;
+        return { ...rest, set_number: index + 1 };
       });
 
       await WorkoutService.logWorkoutAtomic(date, notes, payloadSets);

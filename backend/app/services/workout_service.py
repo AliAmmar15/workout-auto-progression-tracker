@@ -20,7 +20,11 @@ def get_user_workouts(
     Results are ordered by date descending (most recent first) so the user
     sees their latest workouts at the top of the list.
     """
-    query = db.query(Workout).filter(Workout.user_id == user_id)
+    query = (
+        db.query(Workout)
+        .options(joinedload(Workout.sets))
+        .filter(Workout.user_id == user_id)
+    )
 
     if date_from:
         query = query.filter(Workout.date >= date_from)

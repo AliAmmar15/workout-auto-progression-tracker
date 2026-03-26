@@ -1,5 +1,6 @@
 
 import { renderNavbar } from './src/components/navbar.js';
+import { renderLoginScreen } from './src/screens/login.js';
 
 // Simple global State
 export const state = {
@@ -34,6 +35,9 @@ export function showToast(message, type = 'info') {
     }, 3000);
 }
 
+// Expose shared helpers for screen modules.
+window.showToast = showToast;
+
 function renderNavbarIfMissing(appElement) {
     if (!appElement.querySelector('.navbar')) {
         appElement.appendChild(renderNavbar());
@@ -48,26 +52,40 @@ import { renderProgressionDashboard } from './src/screens/ProgressionDashboard.j
 async function router() {
     let hash = window.location.hash.slice(1) || '/';
     const appElement = document.getElementById('app');
+    const isAuthenticated = !!localStorage.getItem('access_token');
 
-    // Remove Auth guard entirely
-    if (hash === '/login' || hash === '/register') {
+    if (!isAuthenticated && hash !== '/login' && hash !== '/register') {
+        window.location.hash = '/login';
+        return;
+    }
+
+    if (isAuthenticated && (hash === '/login' || hash === '/register')) {
         window.location.hash = '/dashboard';
         return;
     }
 
-    // Protected Routes - ensure navbar exists, then clear main content area
     appElement.innerHTML = '';
-    renderNavbarIfMissing(appElement);
 
     const contentArea = document.createElement('div');
     contentArea.id = 'main-content';
     contentArea.className = 'fade-in';
+
+    if (hash !== '/login' && hash !== '/register') {
+        renderNavbarIfMissing(appElement);
+    }
+
     appElement.appendChild(contentArea);
 
     switch (hash) {
         case '/':
         case '/dashboard':
             contentArea.appendChild(await renderProgressionDashboard());
+            break;
+        case '/login':
+            contentArea.appendChild(renderLoginScreen(false));
+            break;
+        case '/register':
+            contentArea.appendChild(renderLoginScreen(true));
             break;
         case '/log':
             contentArea.appendChild(await renderWorkoutLogScreen());

@@ -1,0 +1,176 @@
+/**
+ * Typed API client for the Workout Progression Tracker backend.
+ * All functions accept a JWT token and return typed response objects.
+ * Base URL points at the FastAPI backend (localhost:8000 in dev).
+ */
+
+const BASE_URL = 'http://localhost:8000/api/v1';
+
+// --------------------------------------------------------------------------
+// Types
+// --------------------------------------------------------------------------
+
+export interface TokenResponse {
+  access_token: string;
+  token_type: string;
+}
+
+export interface UserResponse {
+  id: number;
+  username: string;
+  email: string;
+  created_at: string;
+}
+
+export interface ExerciseResponse {
+  id: number;
+  name: string;
+  muscle_group: string;
+  equipment: string;
+}
+
+export interface WorkoutSetResponse {
+  id: number;
+  exercise_id: number;
+  set_number: number;
+  weight: number;
+  reps: number;
+  rpe: number | null;
+}
+
+export interface WorkoutResponse {
+  id: number;
+  user_id: number;
+  date: string;
+  notes: string | null;
+  created_at: string;
+  sets: WorkoutSetResponse[];
+}
+
+export interface ProgressionResponse {
+  exercise_id: number;
+  exercise_name: string;
+  recent_sets: { weight: number; reps: number }[];
+  trend: string;
+  plateau_detected: boolean;
+  is_pr: boolean;
+  last_outcome: string | null;
+}
+
+export interface RecommendationResponse {
+  exercise_id: number;
+  recommended_weight: number;
+  recommended_reps: number;
+  reasoning: string;
+  is_deload: boolean;
+}
+
+export interface WorkoutLogSet {
+  exercise_id: number;
+  set_number: number;
+  weight: number;
+  reps: number;
+  rpe?: number;
+}
+
+export interface WorkoutLogCreate {
+  date: string;
+  notes?: string;
+  sets: WorkoutLogSet[];
+}
+
+// --------------------------------------------------------------------------
+// Helpers
+// --------------------------------------------------------------------------
+
+function authHeaders(token: string) {
+  return {
+    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+  };
+}
+
+async function handleResponse<T>(res: Response): Promise<T> {
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail ?? 'Request failed');
+  }
+  return res.json() as Promise<T>;
+}
+
+// --------------------------------------------------------------------------
+// Auth
+// --------------------------------------------------------------------------
+
+export async function login(email: string, password: string): Promise<TokenResponse> {
+  const res = await fetch(`${BASE_URL}/auth/login`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email, password }),
+  });
+  return handleResponse<TokenResponse>(res);
+}
+
+export async function register(
+  username: string,
+  email: string,
+  password: string,
+): Promise<UserResponse> {
+  const res = await fetch(`${BASE_URL}/auth/register`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ username, email, password }),
+  });
+  return handleResponse<UserResponse>(res);
+}
+
+// --------------------------------------------------------------------------
+// Exercises
+// --------------------------------------------------------------------------
+
+export async function getExercises(token: string): Promise<ExerciseResponse[]> {
+  const res = await fetch(`${BASE_URL}/exercises`, { headers: authHeaders(token) });
+  return handleResponse<ExerciseResponse[]>(res);
+}
+
+// --------------------------------------------------------------------------
+// Workouts
+// --------------------------------------------------------------------------
+
+export async function getWorkouts(token: string): Promise<WorkoutResponse[]> {
+  const res = await fetch(`${BASE_URL}/workouts`, { headers: authHeaders(token) });
+  return handleResponse<WorkoutResponse[]>(res);
+}
+
+export async function logWorkout(token: string, data: WorkoutLogCreate): Promise<WorkoutResponse> {
+  const res = await fetch(`${BASE_URL}/workouts/log`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return handleResponse<WorkoutResponse>(res);
+}
+
+// --------------------------------------------------------------------------
+// Progression
+// --------------------------------------------------------------------------
+
+export async function getProgression(
+  token: string,
+  exerciseId: number,
+): Promise<ProgressionResponse> {
+  const res = await fetch(`${BASE_URL}/exercises/${exerciseId}/progression`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse<ProgressionResponse>(res);
+}
+
+export async function getRecommendation(
+  token: string,
+  exerciseId: number,
+): Promise<RecommendationResponse> {
+  const res = await fetch(`${BASE_URL}/exercises/${exerciseId}/recommendation`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse<RecommendationResponse>(res);
+}
