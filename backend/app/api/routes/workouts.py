@@ -60,9 +60,10 @@ def log_full_workout(
 
     This is the primary workout logging endpoint. Accepts the workout
     date, optional notes, and an array of sets. Everything is created
-    atomically in a single database transaction.
+    atomically in a single database transaction. The response includes
+    per-exercise progression recommendations computed from the user's history.
     """
-    return workout_log_service.log_workout(db, current_user.id, data)
+    return workout_log_service.log_workout_with_progression(db, current_user.id, data)
 
 
 @router.put("/{workout_id}", response_model=WorkoutResponse)

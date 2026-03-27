@@ -1,6 +1,5 @@
 from datetime import date
 from typing import Optional
-
 from pydantic import BaseModel, Field
 
 from app.schemas.workout_set import WorkoutSetCreate, WorkoutSetResponse
@@ -17,12 +16,23 @@ class WorkoutLogCreate(BaseModel):
     sets: list[WorkoutSetCreate] = Field(..., min_length=1)
 
 
+class WorkoutProgressionItem(BaseModel):
+    """Per-exercise progression recommendation returned after a workout is logged."""
+    exercise_id: int
+    exercise_name: str
+    action: str          # "increase" | "maintain" | "decrease" | "deload"
+    next_weight: float
+    reasoning: str
+
+
 class WorkoutLogResponse(BaseModel):
-    """Response for the full workout log including nested set details."""
+    """Response for the full workout log including nested set details and progression."""
     id: int
     user_id: int
     date: date
     notes: Optional[str]
     sets: list[WorkoutSetResponse]
+    progressions: list[WorkoutProgressionItem] = []
+    message: str = "Workout logged"
 
     model_config = {"from_attributes": True}

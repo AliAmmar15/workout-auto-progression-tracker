@@ -18,6 +18,7 @@ from app.services.progression_service import (
     detect_plateau,
     analyze_progression,
     generate_recommendation,
+    compute_post_workout_progression,
 )
 
 
@@ -248,3 +249,77 @@ class TestGenerateRecommendation:
         create_mock_sets(db_session, test_user.id, sample_exercise.id, [(100, 8)])
         rec = generate_recommendation(db_session, test_user.id, sample_exercise.id, target_reps=8)
         assert rec["recommended_weight"] == 105.0  # success → +5%
+
+
+# ---------------------------------------------------------------------------
+# Integration: compute_post_workout_progression — all 4 required cases
+# ---------------------------------------------------------------------------
+
+class TestComputePostWorkoutProgression:
+    """Tests the orchestrating function that returns action-oriented results.
+
+    These are the four cases required by the spec:
+      1. Full success  → action = "increase"
+      2. Near success  → action = "maintain"
+      3. Failure       → action = "decrease"
+      4. Plateau       → action = "deload"
+    """
+
+    def test_full_success_case_action_is_increase(self, db_session, test_user, sample_exercise):
+        """All target reps met → increase weight by 5%."""
+        # target_reps=5, actual=5 → success
+        create_mock_sets(db_session, test_user.id, sample_exercise.id, [(100, 5)])
+        result = compute_post_workout_progression(db_session, test_user.id, sample_exercise.id)
+        assert result["action"] == "increase"
+        assert result["next_weight"] == 105.0
+        assert "increase" in result["reasoning"].lower() or "105" in result["reasoning"]
+        assert result["exercise_id"] == sample_exercise.id
+        assert result["exercise_name"] == sample_exercise.name
+
+    def test_near_success_case_action_is_maintain(self, db_session, test_user, sample_exercise):
+        """≤2 reps missed (partial) → maintain weight."""
+        # 4 reps out of 5 target → 1 missed → partial
+        create_mock_sets(db_session, test_user.id, sample_exercise.id, [(100, 4)])
+        result = compute_post_workout_progression(db_session, test_user.id, sample_exercise.id)
+        assert result["action"] == "maintain"
+        assert result["next_weight"] == 100.0
+        assert result["exercise_id"] == sample_exercise.id
+
+    def test_failure_case_action_is_decrease(self, db_session, test_user, sample_exercise):
+        """>2 reps missed → decrease weight by 5%."""
+        # 2 reps out of 5 target → 3 missed → failure
+        create_mock_sets(db_session, test_user.id, sample_exercise.id, [(100, 2)])
+        result = compute_post_workout_progression(db_session, test_user.id, sample_exercise.id)
+        assert result["action"] == "decrease"
+        assert result["next_weight"] == 95.0
+        assert result["exercise_id"] == sample_exercise.id
+
+    def test_plateau_case_action_is_deload(self, db_session, test_user, sample_exercise):
+        """Same weight, no improvement across 3 sessions → deload by 10%."""
+        # 3 consecutive partial outcomes → plateau detected
+        create_mock_sets(db_session, test_user.id, sample_exercise.id,
+                         [(100, 4), (100, 4), (100, 4)])
+        result = compute_post_workout_progression(db_session, test_user.id, sample_exercise.id)
+        assert result["action"] == "deload"
+        assert result["next_weight"] == 90.0   # 100 * 0.9
+        assert "deload" in result["reasoning"].lower() or "plateau" in result["reasoning"].lower()
+        assert result["exercise_id"] == sample_exercise.id
+
+    def test_no_data_returns_maintain(self, db_session, test_user, sample_exercise):
+        """No prior sets → returns maintain with 0 weight."""
+        result = compute_post_workout_progression(db_session, test_user.id, sample_exercise.id)
+        assert result["action"] == "maintain"
+        assert result["next_weight"] == 0.0
+
+    def test_plateau_detected_mixed_failure_partial(self, db_session, test_user, sample_exercise):
+        """Plateau can be triggered by a mix of partial and failure outcomes."""
+        create_mock_sets(db_session, test_user.id, sample_exercise.id,
+                         [(100, 4), (100, 2), (100, 3)])  # partial, failure, partial
+        result = compute_post_workout_progression(db_session, test_user.id, sample_exercise.id)
+        assert result["action"] == "deload"
+
+    def test_result_contains_required_keys(self, db_session, test_user, sample_exercise):
+        """Response dict always has all required keys."""
+        result = compute_post_workout_progression(db_session, test_user.id, sample_exercise.id)
+        required_keys = {"exercise_id", "exercise_name", "action", "next_weight", "reasoning"}
+        assert required_keys.issubset(result.keys())

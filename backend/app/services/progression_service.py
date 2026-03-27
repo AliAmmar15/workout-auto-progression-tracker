@@ -135,6 +135,73 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int, target_reps
     }
 
 
+def compute_post_workout_progression(db: Session, user_id: int, exercise_id: int, target_reps: int = 5) -> dict:
+    """
+    Compute an action-oriented progression result for the post-workout API response.
+
+    Called immediately after a workout is saved so the newly committed sets are
+    included in the analysis.  Returns a flat dict suitable for serialisation:
+
+        {
+            "exercise_id":   int,
+            "exercise_name": str,
+            "action":        "increase" | "maintain" | "decrease" | "deload",
+            "next_weight":   float,
+            "reasoning":     str,
+        }
+
+    Reuses existing pure functions (calculate_next_weight, detect_plateau) and
+    the DB orchestrator (analyze_progression) — no logic is duplicated.
+    """
+    analysis = analyze_progression(db, user_id, exercise_id, target_reps)
+    recent = analysis["recent_sets"]
+
+    if not recent:
+        return {
+            "exercise_id": exercise_id,
+            "exercise_name": analysis["exercise_name"],
+            "action": "maintain",
+            "next_weight": 0.0,
+            "reasoning": "No previous data. Start with a comfortable weight.",
+        }
+
+    last_weight = recent[-1]["weight"]
+    plateau_detected = analysis["plateau_detected"]
+    last_outcome = analysis["last_outcome"]
+
+    # Plateau takes priority → deload (−10%)
+    if plateau_detected:
+        next_weight = round(last_weight * 0.9, 2)
+        return {
+            "exercise_id": exercise_id,
+            "exercise_name": analysis["exercise_name"],
+            "action": "deload",
+            "next_weight": next_weight,
+            "reasoning": f"Plateau detected across 3 sessions. Deload to {next_weight} lbs for recovery.",
+        }
+
+    next_weight = calculate_next_weight(last_weight, last_outcome)
+
+    action_map = {
+        "success": "increase",
+        "partial": "maintain",
+        "failure": "decrease",
+    }
+    reasoning_map = {
+        "success": f"All target reps met. Increase to {next_weight} lbs next session.",
+        "partial": f"≤2 reps missed. Maintain {next_weight} lbs next session.",
+        "failure": f">2 reps missed. Reduce to {next_weight} lbs next session.",
+    }
+
+    return {
+        "exercise_id": exercise_id,
+        "exercise_name": analysis["exercise_name"],
+        "action": action_map.get(last_outcome, "maintain"),
+        "next_weight": next_weight,
+        "reasoning": reasoning_map.get(last_outcome, f"Maintain {next_weight} lbs."),
+    }
+
+
 def generate_recommendation(db: Session, user_id: int, exercise_id: int, target_reps: int = 5):
     """
     Generate next workout recommendation using spec-compliant pure functions.

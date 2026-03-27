@@ -4,7 +4,7 @@
  * Base URL points at the FastAPI backend (localhost:8000 in dev).
  */
 
-const BASE_URL = 'http://localhost:8000/api/v1';
+const BASE_URL = 'http://10.0.0.114:8000/api/v1';
 
 // --------------------------------------------------------------------------
 // Types
@@ -79,6 +79,24 @@ export interface WorkoutLogCreate {
   sets: WorkoutLogSet[];
 }
 
+export interface WorkoutProgressionItem {
+  exercise_id: number;
+  exercise_name: string;
+  action: 'increase' | 'maintain' | 'decrease' | 'deload';
+  next_weight: number;
+  reasoning: string;
+}
+
+export interface WorkoutLogResponse {
+  id: number;
+  user_id: number;
+  date: string;
+  notes: string | null;
+  sets: WorkoutSetResponse[];
+  progressions: WorkoutProgressionItem[];
+  message: string;
+}
+
 // --------------------------------------------------------------------------
 // Helpers
 // --------------------------------------------------------------------------
@@ -133,6 +151,28 @@ export async function getExercises(token: string): Promise<ExerciseResponse[]> {
   return handleResponse<ExerciseResponse[]>(res);
 }
 
+export async function createExercise(
+  token: string,
+  data: { name: string; muscle_group: string; equipment: string },
+): Promise<ExerciseResponse> {
+  const res = await fetch(`${BASE_URL}/exercises`, {
+    method: 'POST',
+    headers: authHeaders(token),
+    body: JSON.stringify(data),
+  });
+  return handleResponse<ExerciseResponse>(res);
+}
+
+export async function getExerciseRecommendation(
+  token: string,
+  exerciseId: number,
+): Promise<RecommendationResponse> {
+  const res = await fetch(`${BASE_URL}/exercises/${exerciseId}/recommendation`, {
+    headers: authHeaders(token),
+  });
+  return handleResponse<RecommendationResponse>(res);
+}
+
 // --------------------------------------------------------------------------
 // Workouts
 // --------------------------------------------------------------------------
@@ -142,13 +182,13 @@ export async function getWorkouts(token: string): Promise<WorkoutResponse[]> {
   return handleResponse<WorkoutResponse[]>(res);
 }
 
-export async function logWorkout(token: string, data: WorkoutLogCreate): Promise<WorkoutResponse> {
+export async function logWorkout(token: string, data: WorkoutLogCreate): Promise<WorkoutLogResponse> {
   const res = await fetch(`${BASE_URL}/workouts/log`, {
     method: 'POST',
     headers: authHeaders(token),
     body: JSON.stringify(data),
   });
-  return handleResponse<WorkoutResponse>(res);
+  return handleResponse<WorkoutLogResponse>(res);
 }
 
 // --------------------------------------------------------------------------

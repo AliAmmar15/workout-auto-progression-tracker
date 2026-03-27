@@ -24,6 +24,7 @@ Completed Tasks:
 [x] Progression algorithm
 [x] Frontend integration (Vanilla JS SPA built with Glassmorphism)
 [x] Testing suite (Backend Service Layer Unit Tests)
+[x] Implemented progression and deload system (end-to-end: backend + frontend)
 
 ---
 

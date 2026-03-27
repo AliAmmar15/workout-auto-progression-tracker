@@ -9,7 +9,6 @@ import AuthScreen from './src/screens/AuthScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import WorkoutLogScreen from './src/screens/WorkoutLogScreen';
 import WorkoutHistoryScreen from './src/screens/WorkoutHistoryScreen';
-import ExerciseLibraryScreen from './src/screens/ExerciseLibraryScreen';
 import ProfileScreen from './src/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
@@ -18,7 +17,6 @@ function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const icons: Record<string, string> = {
     Home: '🏠',
     Log: '📝',
-    Library: '📚',
     History: '📋',
     Profile: '👤',
   };
@@ -73,7 +71,6 @@ export default function App() {
           >
             <Tab.Screen name="Home" component={DashboardScreen} options={{ title: 'Dashboard', headerShown: false }} />
             <Tab.Screen name="Log" component={WorkoutLogScreen} options={{ title: 'Log Workout' }} />
-            <Tab.Screen name="Library" component={ExerciseLibraryScreen} options={{ title: 'Library', headerShown: false }} />
             <Tab.Screen name="History" component={WorkoutHistoryScreen} options={{ title: 'History' }} />
             <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile', headerShown: false }} />
           </Tab.Navigator>

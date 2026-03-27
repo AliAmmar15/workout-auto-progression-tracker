@@ -9,7 +9,7 @@ import {
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
 import useAuthStore from '../store/useAuthStore';
-import { getWorkouts, WorkoutResponse } from '../services/api';
+import { getWorkouts, getExercises, WorkoutResponse, ExerciseResponse } from '../services/api';
 
 // ─── Circular Progress Ring ───────────────────────────────────────────────────
 
@@ -108,6 +108,147 @@ function QuickActionCard({
   );
 }
 
+// ─── Progress Tracker ─────────────────────────────────────────────────────────
+
+function ProgressTracker({
+  workouts,
+  exerciseMap,
+  open,
+  onToggle,
+}: {
+  workouts: WorkoutResponse[];
+  exerciseMap: Record<number, string>;
+  open: boolean;
+  onToggle: () => void;
+}) {
+  const ACCENT = '#00d4aa';
+  const CARD_BG = '#1a1f2e';
+  const BORDER = '#252a3a';
+  const TEXT_PRIMARY = '#ffffff';
+  const TEXT_SECONDARY = '#8892a4';
+
+  // ── 7-day activity dots ──
+  const todayMs = new Date();
+  const weekDots = Array.from({ length: 7 }, (_, i) => {
+    const d = new Date(todayMs);
+    d.setDate(d.getDate() - (6 - i));
+    const dateStr = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const hasWorkout = workouts.some((w) => w.date === dateStr);
+    return { label: d.toLocaleDateString('en-US', { weekday: 'short' }).slice(0, 1), hasWorkout, isToday: i === 6 };
+  });
+
+  // ── Top lifts: exercises with most sessions, show first→latest weight, % change ──
+  const exerciseHistory: Record<number, { first: number; latest: number; sessions: number }> = {};
+  const sortedWorkouts = [...workouts].sort((a, b) => a.date.localeCompare(b.date));
+  for (const w of sortedWorkouts) {
+    for (const s of (w.sets ?? [])) {
+      if (!exerciseHistory[s.exercise_id]) {
+        exerciseHistory[s.exercise_id] = { first: s.weight, latest: s.weight, sessions: 0 };
+      } else {
+        exerciseHistory[s.exercise_id].latest = s.weight;
+      }
+      exerciseHistory[s.exercise_id].sessions += 1;
+    }
+  }
+  const topLifts = Object.entries(exerciseHistory)
+    .sort((a, b) => b[1].sessions - a[1].sessions)
+    .slice(0, 5)
+    .map(([id, h]) => ({
+      name: exerciseMap[Number(id)] ?? `Exercise #${id}`,
+      first: h.first,
+      latest: h.latest,
+      pct: h.first > 0 ? Math.round(((h.latest - h.first) / h.first) * 100) : 0,
+    }));
+
+  // ── Volume bars: last 8 workouts ──
+  const recentWorkouts = [...workouts].sort((a, b) => b.date.localeCompare(a.date)).slice(0, 8).reverse();
+  const volumes = recentWorkouts.map((w) => ({
+    label: new Date(w.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    vol: (w.sets ?? []).reduce((acc, s) => acc + s.weight * s.reps, 0),
+  }));
+  const maxVol = Math.max(...volumes.map((v) => v.vol), 1);
+
+  return (
+    <View style={[styles.card, { marginBottom: 16 }]}>
+      <View style={styles.sectionHeader}>
+        <Text style={styles.sectionTitle}>📊  Progress Tracker</Text>
+        <TouchableOpacity onPress={onToggle}>
+          <Text style={styles.viewAllText}>{open ? 'Hide ▲' : 'Show ▼'}</Text>
+        </TouchableOpacity>
+      </View>
+
+      {!open && (
+        <View style={{ alignItems: 'center', paddingVertical: 12 }}>
+          <Text style={{ color: TEXT_SECONDARY, fontSize: 13 }}>Tap Show to see your progress</Text>
+        </View>
+      )}
+
+      {open && (
+        <>
+          {/* ── This Week ── */}
+          <Text style={styles.trackerSection}>This Week</Text>
+          <View style={styles.weekRow}>
+            {weekDots.map((d, i) => (
+              <View key={i} style={styles.dotCol}>
+                <View style={[
+                  styles.activityDot,
+                  d.hasWorkout && { backgroundColor: ACCENT },
+                  d.isToday && { borderColor: ACCENT, borderWidth: 2 },
+                ]} />
+                <Text style={[styles.dotLabel, d.isToday && { color: ACCENT, fontWeight: '700' }]}>{d.label}</Text>
+              </View>
+            ))}
+          </View>
+
+          {/* ── Top Lifts ── */}
+          <Text style={[styles.trackerSection, { marginTop: 18 }]}>Top Lifts</Text>
+          {topLifts.length === 0 ? (
+            <Text style={{ color: TEXT_SECONDARY, fontSize: 13, paddingVertical: 8 }}>Log workouts to see lift progression.</Text>
+          ) : (
+            topLifts.map((lift, i) => (
+              <View key={i} style={styles.liftRow}>
+                <Text style={styles.liftName} numberOfLines={1}>{lift.name}</Text>
+                <Text style={styles.liftWeights}>
+                  {lift.first} → {lift.latest} lbs
+                </Text>
+                <View style={[
+                  styles.pctBadge,
+                  { backgroundColor: lift.pct > 0 ? '#2ecc7122' : lift.pct < 0 ? '#e74c3c22' : '#8892a422' },
+                ]}>
+                  <Text style={[
+                    styles.pctText,
+                    { color: lift.pct > 0 ? '#2ecc71' : lift.pct < 0 ? '#e74c3c' : TEXT_SECONDARY },
+                  ]}>
+                    {lift.pct > 0 ? '+' : ''}{lift.pct}%
+                  </Text>
+                </View>
+              </View>
+            ))
+          )}
+
+          {/* ── Volume Chart ── */}
+          {volumes.length > 0 && (
+            <>
+              <Text style={[styles.trackerSection, { marginTop: 18 }]}>Volume (lbs) — Last {volumes.length} Workouts</Text>
+              <View style={styles.volChart}>
+                {volumes.map((v, i) => (
+                  <View key={i} style={styles.volCol}>
+                    <Text style={styles.volValue}>{v.vol >= 1000 ? `${(v.vol / 1000).toFixed(1)}k` : v.vol}</Text>
+                    <View style={styles.volBarTrack}>
+                      <View style={[styles.volBarFill, { height: `${Math.max(4, Math.round((v.vol / maxVol) * 100))}%` as any }]} />
+                    </View>
+                    <Text style={styles.volLabel}>{v.label}</Text>
+                  </View>
+                ))}
+              </View>
+            </>
+          )}
+        </>
+      )}
+    </View>
+  );
+}
+
 // ─── Main Dashboard Screen ────────────────────────────────────────────────────
 
 export default function DashboardScreen() {
@@ -116,21 +257,27 @@ export default function DashboardScreen() {
   const navigation = useNavigation<BottomTabNavigationProp<any>>();
 
   const [workouts, setWorkouts] = useState<WorkoutResponse[]>([]);
+  const [exerciseMap, setExerciseMap] = useState<Record<number, string>>({});
 
   // Month navigation state
   const now = new Date();
   const [monthOffset, setMonthOffset] = useState(0);
-  const [progressTrackerOpen, setProgressTrackerOpen] = useState(false);
+  const [progressTrackerOpen, setProgressTrackerOpen] = useState(true);
 
   const targetMonth = new Date(now.getFullYear(), now.getMonth() + monthOffset, 1);
   const monthLabel = targetMonth.toLocaleString('default', { month: 'long', year: 'numeric' });
 
-  // Fetch workouts when screen focuses
+  // Fetch workouts + exercises when screen focuses
   useFocusEffect(
     useCallback(() => {
       if (!token) return;
-      getWorkouts(token)
-        .then(setWorkouts)
+      getWorkouts(token).then(setWorkouts).catch(() => {});
+      getExercises(token)
+        .then((exs: ExerciseResponse[]) => {
+          const m: Record<number, string> = {};
+          exs.forEach((e) => { m[e.id] = e.name; });
+          setExerciseMap(m);
+        })
         .catch(() => {});
     }, [token])
   );
@@ -164,7 +311,6 @@ export default function DashboardScreen() {
       {/* ── Quick Actions ── */}
       <View style={styles.quickRow}>
         <QuickActionCard icon="▶️" title="Start a New Workout" subtitle="Log Session" onPress={() => navigation.navigate('Log')} />
-        <QuickActionCard icon="🔍" title="Explore Exercises" subtitle="Exercise Library" onPress={() => navigation.navigate('Library')} />
       </View>
 
       {/* ── Monthly Progress ── */}
@@ -245,22 +391,12 @@ export default function DashboardScreen() {
       </View>
 
       {/* ── Progress Tracker ── */}
-      <View style={styles.card}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>📊  Progress Tracker</Text>
-          <TouchableOpacity onPress={() => setProgressTrackerOpen((o) => !o)}>
-            <Text style={styles.viewAllText}>{progressTrackerOpen ? 'Hide ▲' : 'Show ▼'}</Text>
-          </TouchableOpacity>
-        </View>
-        {progressTrackerOpen ? (
-          <Text style={styles.emptyText}>Progress chart coming soon…</Text>
-        ) : (
-          <View style={styles.trackerCollapsed}>
-            <Text style={styles.trackerHint}>Track your exercise and weight progress</Text>
-            <Text style={[styles.trackerHint, { fontSize: 11 }]}>Click 'Show' to expand</Text>
-          </View>
-        )}
-      </View>
+      <ProgressTracker
+        workouts={workouts}
+        exerciseMap={exerciseMap}
+        open={progressTrackerOpen}
+        onToggle={() => setProgressTrackerOpen((o) => !o)}
+      />
 
       <View style={{ height: 24 }} />
     </ScrollView>
@@ -404,6 +540,28 @@ const styles = StyleSheet.create({
   // Progress tracker
   trackerCollapsed: { paddingVertical: 20, alignItems: 'center', gap: 4 },
   trackerHint: { color: TEXT_SECONDARY, fontSize: 13 },
+  trackerSection: { fontSize: 13, fontWeight: '700', color: TEXT_SECONDARY, marginBottom: 10, letterSpacing: 0.5, textTransform: 'uppercase' },
+
+  // Week dots
+  weekRow: { flexDirection: 'row', justifyContent: 'space-between' },
+  dotCol: { alignItems: 'center', gap: 6 },
+  activityDot: { width: 32, height: 32, borderRadius: 16, backgroundColor: '#252a3a' },
+  dotLabel: { color: TEXT_SECONDARY, fontSize: 11, fontWeight: '600' },
+
+  // Top lifts
+  liftRow: { flexDirection: 'row', alignItems: 'center', paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: BORDER },
+  liftName: { flex: 1, color: TEXT_PRIMARY, fontSize: 13, fontWeight: '600' },
+  liftWeights: { color: TEXT_SECONDARY, fontSize: 12, marginRight: 10 },
+  pctBadge: { borderRadius: 8, paddingHorizontal: 8, paddingVertical: 3 },
+  pctText: { fontSize: 12, fontWeight: '700' },
+
+  // Volume chart
+  volChart: { flexDirection: 'row', alignItems: 'flex-end', height: 100, gap: 4 },
+  volCol: { flex: 1, alignItems: 'center', height: '100%', justifyContent: 'flex-end' },
+  volValue: { color: TEXT_SECONDARY, fontSize: 9, marginBottom: 3 },
+  volBarTrack: { width: '80%', flex: 1, backgroundColor: '#252a3a', borderRadius: 4, overflow: 'hidden', justifyContent: 'flex-end' },
+  volBarFill: { width: '100%', backgroundColor: ACCENT, borderRadius: 4 },
+  volLabel: { color: TEXT_SECONDARY, fontSize: 9, marginTop: 4, textAlign: 'center' },
 
   // Generic stat card (unused but kept)
   statCard: { flex: 1, backgroundColor: '#252a3a', borderRadius: 10, padding: 12, alignItems: 'center' },

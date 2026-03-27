@@ -5,6 +5,7 @@ from app.models.exercise import Exercise
 from app.models.workout import Workout
 from app.models.workout_set import WorkoutSet
 from app.schemas.workout_log import WorkoutLogCreate
+from app.services.progression_service import compute_post_workout_progression
 
 
 def log_workout(db: Session, user_id: int, data: WorkoutLogCreate) -> Workout:
@@ -70,3 +71,36 @@ def log_workout(db: Session, user_id: int, data: WorkoutLogCreate) -> Workout:
         .first()
     )
     return result
+
+
+def log_workout_with_progression(db: Session, user_id: int, data: WorkoutLogCreate) -> dict:
+    """Log a workout and compute per-exercise progression recommendations.
+
+    Calls log_workout() atomically, then — using the freshly committed data —
+    calls compute_post_workout_progression() for every unique exercise in the
+    session.  Returns a dict matching WorkoutLogResponse (including progressions).
+
+    The existing log_workout() function is intentionally left unchanged so its
+    existing tests continue to pass without modification.
+    """
+    workout = log_workout(db, user_id, data)
+
+    unique_exercise_ids = list({s.exercise_id for s in data.sets})
+    progressions = []
+    for ex_id in unique_exercise_ids:
+        try:
+            prog = compute_post_workout_progression(db, user_id, ex_id)
+            progressions.append(prog)
+        except Exception:
+            # Never fail the log response due to a progression error
+            pass
+
+    return {
+        "id": workout.id,
+        "user_id": workout.user_id,
+        "date": workout.date,
+        "notes": workout.notes,
+        "sets": workout.sets,
+        "progressions": progressions,
+        "message": "Workout logged",
+    }
