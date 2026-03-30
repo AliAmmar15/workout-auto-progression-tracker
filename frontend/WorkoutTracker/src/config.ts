@@ -14,15 +14,8 @@
 import Constants from 'expo-constants';
 
 function getBaseUrl(): string {
-  // hostUri looks like "192.168.1.42:8081" — grab just the IP part
-  const hostUri: string =
-    (Constants.expoConfig?.hostUri as string | undefined) ?? '';
-  const host = hostUri.split(':')[0];
-  if (host && host !== 'localhost' && host !== '127.0.0.1') {
-    return `http://${host}:8000/api/v1`;
-  }
-  // iOS simulator / web browser fallback
-  return 'http://localhost:8000/api/v1';
+  // Production backend on Render
+  return 'https://workout-tracker-api-uoob.onrender.com/api/v1';
 }
 
 export const BASE_URL = getBaseUrl();
