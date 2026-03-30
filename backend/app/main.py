@@ -2,6 +2,8 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from app.api.routes import auth, users, exercises, workouts, workout_sets, progression
+from app.database.session import engine, Base
+from app.models import User, Exercise, Workout, WorkoutSet  # noqa: F401 — ensure models registered
 
 app = FastAPI(
     title="Workout Progress Tracker",
@@ -9,14 +11,10 @@ app = FastAPI(
     version="1.0.0",
 )
 
-# CORS — allow frontend to connect
+# CORS — allow frontend to connect (mobile app + local dev)
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[
-        "http://localhost:8081",
-        "http://127.0.0.1:8081",
-    ],
-    allow_origin_regex=r"https?://(localhost|127\.0\.0\.1|10\.0\.0\.\d+)(:\d+)?",
+    allow_origins=["*"],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -35,3 +33,9 @@ app.include_router(progression.router, prefix="/api/v1/exercises", tags=["Progre
 def health_check():
     """Health check endpoint."""
     return {"status": "healthy"}
+
+
+@app.on_event("startup")
+def on_startup():
+    """Create tables if they don't exist."""
+    Base.metadata.create_all(bind=engine)
