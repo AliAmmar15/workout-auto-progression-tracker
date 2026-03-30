@@ -46,19 +46,3 @@ def login(db: Session, data: UserLogin) -> TokenResponse:
 
     token = create_access_token(user.id)
     return TokenResponse(access_token=token)
-
-
-
-def login(db: Session, data: UserLogin) -> TokenResponse:
-    """Authenticate a user and return a JWT access token.
-
-    Looks up the user by email and verifies the password against the
-    stored bcrypt hash. Returns a TokenResponse containing the JWT.
-    Raises 401 if credentials are invalid.
-    """
-    user = db.query(User).filter(User.email == data.email).first()
-    if not user or not verify_password(data.password, user.password_hash):
-        raise HTTPException(status_code=401, detail="Invalid email or password")
-
-    token = create_access_token(user.id)
-    return TokenResponse(access_token=token)

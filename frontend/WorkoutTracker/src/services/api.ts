@@ -22,15 +22,24 @@ export interface UserResponse {
 }
 
 export interface ExerciseResponse {
-  id: number;
+  id: string;
+  canonical_name: string;
+  display_name: string;
   name: string;
   muscle_group: string;
   equipment: string;
+  is_custom: boolean;
+  user_id: number | null;
+  exercise_type: string | null;
+  rep_range_min: number | null;
+  rep_range_max: number | null;
+  progression_rate: number | null;
+  created_at: string;
 }
 
 export interface WorkoutSetResponse {
   id: number;
-  exercise_id: number;
+  exercise_id: string;
   set_number: number;
   weight: number;
   reps: number;
@@ -47,7 +56,7 @@ export interface WorkoutResponse {
 }
 
 export interface ProgressionResponse {
-  exercise_id: number;
+  exercise_id: string;
   exercise_name: string;
   recent_sets: { weight: number; reps: number }[];
   trend: string;
@@ -57,7 +66,7 @@ export interface ProgressionResponse {
 }
 
 export interface RecommendationResponse {
-  exercise_id: number;
+  exercise_id: string;
   action: string;
   next_weight: number;
   target_reps: number | string;
@@ -66,7 +75,7 @@ export interface RecommendationResponse {
 }
 
 export interface WorkoutLogSet {
-  exercise_id: number;
+  exercise_id: string | number;
   set_number: number;
   weight: number;
   reps: number;
@@ -80,7 +89,7 @@ export interface WorkoutLogCreate {
 }
 
 export interface WorkoutProgressionItem {
-  exercise_id: number;
+  exercise_id: string;
   exercise_name: string;
   action: 'increase' | 'maintain' | 'decrease' | 'deload';
   next_weight: number;
@@ -151,21 +160,36 @@ export async function getExercises(token: string): Promise<ExerciseResponse[]> {
   return handleResponse<ExerciseResponse[]>(res);
 }
 
+export async function getExerciseById(token: string, exerciseId: string | number): Promise<ExerciseResponse> {
+  const res = await fetch(`${BASE_URL}/exercises/${exerciseId}`, { headers: authHeaders(token) });
+  return handleResponse<ExerciseResponse>(res);
+}
+
 export async function createExercise(
   token: string,
   data: { name: string; muscle_group: string; equipment: string },
 ): Promise<ExerciseResponse> {
-  const res = await fetch(`${BASE_URL}/exercises`, {
+  // Map to the custom exercise endpoint which sets is_custom=true and user_id
+  const validEquipment = ['barbell', 'dumbbell', 'machine', 'cable', 'bodyweight'];
+  const equipment = validEquipment.includes(data.equipment.toLowerCase())
+    ? data.equipment.toLowerCase()
+    : 'bodyweight';
+
+  const res = await fetch(`${BASE_URL}/exercises/custom`, {
     method: 'POST',
     headers: authHeaders(token),
-    body: JSON.stringify(data),
+    body: JSON.stringify({
+      display_name: data.name,
+      muscle_group: data.muscle_group,
+      equipment,
+    }),
   });
   return handleResponse<ExerciseResponse>(res);
 }
 
 export async function getExerciseRecommendation(
   token: string,
-  exerciseId: number,
+  exerciseId: string | number,
 ): Promise<RecommendationResponse> {
   const res = await fetch(`${BASE_URL}/exercises/${exerciseId}/recommendation`, {
     headers: authHeaders(token),
@@ -177,9 +201,32 @@ export async function getExerciseRecommendation(
 // Workouts
 // --------------------------------------------------------------------------
 
-export async function getWorkouts(token: string): Promise<WorkoutResponse[]> {
-  const res = await fetch(`${BASE_URL}/workouts`, { headers: authHeaders(token) });
+export async function getWorkouts(
+  token: string,
+  filters?: { date_from?: string; date_to?: string },
+): Promise<WorkoutResponse[]> {
+  const params = new URLSearchParams();
+  if (filters?.date_from) params.set('date_from', filters.date_from);
+  if (filters?.date_to)   params.set('date_to',   filters.date_to);
+  const query = params.toString() ? `?${params.toString()}` : '';
+  const res = await fetch(`${BASE_URL}/workouts${query}`, { headers: authHeaders(token) });
   return handleResponse<WorkoutResponse[]>(res);
+}
+
+export async function getWorkoutById(token: string, id: number): Promise<WorkoutResponse> {
+  const res = await fetch(`${BASE_URL}/workouts/${id}`, { headers: authHeaders(token) });
+  return handleResponse<WorkoutResponse>(res);
+}
+
+export async function deleteWorkout(token: string, id: number): Promise<void> {
+  const res = await fetch(`${BASE_URL}/workouts/${id}`, {
+    method: 'DELETE',
+    headers: authHeaders(token),
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ detail: res.statusText }));
+    throw new Error(err.detail ?? 'Delete failed');
+  }
 }
 
 export async function logWorkout(token: string, data: WorkoutLogCreate): Promise<WorkoutLogResponse> {
@@ -197,7 +244,7 @@ export async function logWorkout(token: string, data: WorkoutLogCreate): Promise
 
 export async function getProgression(
   token: string,
-  exerciseId: number,
+  exerciseId: string | number,
 ): Promise<ProgressionResponse> {
   const res = await fetch(`${BASE_URL}/exercises/${exerciseId}/progression`, {
     headers: authHeaders(token),
@@ -207,7 +254,7 @@ export async function getProgression(
 
 export async function getRecommendation(
   token: string,
-  exerciseId: number,
+  exerciseId: string | number,
 ): Promise<RecommendationResponse> {
   const res = await fetch(`${BASE_URL}/exercises/${exerciseId}/recommendation`, {
     headers: authHeaders(token),

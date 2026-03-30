@@ -1,0 +1,826 @@
+[
+  {
+    "date": "2026-03-02",
+    "workout_type": "Push",
+    "notes": "Good session, stable bar path and solid lockout.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "bench_press",
+        "sets": [
+          { "weight": 135, "reps": 8 },
+          { "weight": 135, "reps": 7 },
+          { "weight": 135, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "incline_dumbbell_press",
+        "sets": [
+          { "weight": 50, "reps": 10 },
+          { "weight": 50, "reps": 9 },
+          { "weight": 50, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "overhead_press",
+        "sets": [
+          { "weight": 85, "reps": 8 },
+          { "weight": 85, "reps": 7 },
+          { "weight": 85, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "lateral_raise",
+        "sets": [
+          { "weight": 20, "reps": 14 },
+          { "weight": 20, "reps": 13 },
+          { "weight": 20, "reps": 12 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_pushdown",
+        "sets": [
+          { "weight": 55, "reps": 12 },
+          { "weight": 55, "reps": 11 },
+          { "weight": 55, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_dip",
+        "sets": [
+          { "weight": 0, "reps": 12 },
+          { "weight": 0, "reps": 10 },
+          { "weight": 0, "reps": 9 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-03",
+    "workout_type": "Pull",
+    "notes": "Grip felt good, lower back a little taxed on final deadlift set.",
+    "performance_outcome": "near_success",
+    "exercises": [
+      {
+        "canonical_name": "deadlift",
+        "sets": [
+          { "weight": 225, "reps": 5 },
+          { "weight": 225, "reps": 5 },
+          { "weight": 225, "reps": 4 }
+        ]
+      },
+      {
+        "canonical_name": "barbell_row",
+        "sets": [
+          { "weight": 145, "reps": 8 },
+          { "weight": 145, "reps": 8 },
+          { "weight": 145, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "lat_pulldown",
+        "sets": [
+          { "weight": 120, "reps": 10 },
+          { "weight": 120, "reps": 9 },
+          { "weight": 120, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "pull_up",
+        "sets": [
+          { "weight": 0, "reps": 8 },
+          { "weight": 0, "reps": 7 },
+          { "weight": 0, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "face_pull",
+        "sets": [
+          { "weight": 35, "reps": 15 },
+          { "weight": 35, "reps": 14 },
+          { "weight": 35, "reps": 13 }
+        ]
+      },
+      {
+        "canonical_name": "dumbbell_curl",
+        "sets": [
+          { "weight": 30, "reps": 12 },
+          { "weight": 30, "reps": 11 },
+          { "weight": 30, "reps": 10 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-05",
+    "workout_type": "Legs",
+    "notes": "Strong leg day, depth consistent on squats.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "barbell_squat",
+        "sets": [
+          { "weight": 185, "reps": 8 },
+          { "weight": 185, "reps": 7 },
+          { "weight": 185, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "romanian_deadlift",
+        "sets": [
+          { "weight": 165, "reps": 10 },
+          { "weight": 165, "reps": 9 },
+          { "weight": 165, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "leg_press",
+        "sets": [
+          { "weight": 320, "reps": 12 },
+          { "weight": 320, "reps": 11 },
+          { "weight": 320, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "leg_curl",
+        "sets": [
+          { "weight": 95, "reps": 12 },
+          { "weight": 95, "reps": 11 },
+          { "weight": 95, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "standing_calf_raise",
+        "sets": [
+          { "weight": 140, "reps": 15 },
+          { "weight": 140, "reps": 14 },
+          { "weight": 140, "reps": 13 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-07",
+    "workout_type": "Upper",
+    "notes": "Moderate fatigue, focused on controlled tempo.",
+    "performance_outcome": "near_success",
+    "exercises": [
+      {
+        "canonical_name": "incline_bench_press",
+        "sets": [
+          { "weight": 125, "reps": 8 },
+          { "weight": 125, "reps": 8 },
+          { "weight": 125, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "seated_dumbbell_press",
+        "sets": [
+          { "weight": 55, "reps": 10 },
+          { "weight": 55, "reps": 9 },
+          { "weight": 55, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "seated_cable_row",
+        "sets": [
+          { "weight": 130, "reps": 11 },
+          { "weight": 130, "reps": 10 },
+          { "weight": 130, "reps": 9 }
+        ]
+      },
+      {
+        "canonical_name": "pull_up",
+        "sets": [
+          { "weight": 0, "reps": 7 },
+          { "weight": 0, "reps": 6 },
+          { "weight": 0, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "hammer_curl",
+        "sets": [
+          { "weight": 25, "reps": 12 },
+          { "weight": 25, "reps": 11 },
+          { "weight": 25, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "skull_crusher",
+        "sets": [
+          { "weight": 65, "reps": 11 },
+          { "weight": 65, "reps": 10 },
+          { "weight": 65, "reps": 9 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-08",
+    "workout_type": "Full Body",
+    "notes": "Conditioning focus; legs and core were fatigued by the end.",
+    "performance_outcome": "fail",
+    "exercises": [
+      {
+        "canonical_name": "front_squat",
+        "sets": [
+          { "weight": 135, "reps": 8 },
+          { "weight": 135, "reps": 7 },
+          { "weight": 135, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "dumbbell_bench_press",
+        "sets": [
+          { "weight": 60, "reps": 10 },
+          { "weight": 60, "reps": 9 },
+          { "weight": 60, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "dumbbell_row",
+        "sets": [
+          { "weight": 75, "reps": 10 },
+          { "weight": 75, "reps": 10 },
+          { "weight": 75, "reps": 9 }
+        ]
+      },
+      {
+        "canonical_name": "walking_lunge",
+        "sets": [
+          { "weight": 35, "reps": 12 },
+          { "weight": 35, "reps": 12 },
+          { "weight": 35, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "kettlebell_swing",
+        "sets": [
+          { "weight": 53, "reps": 15 },
+          { "weight": 53, "reps": 15 },
+          { "weight": 53, "reps": 14 }
+        ]
+      },
+      {
+        "canonical_name": "plank",
+        "sets": [
+          { "weight": 0, "reps": 1 },
+          { "weight": 0, "reps": 1 },
+          { "weight": 0, "reps": 1 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-09",
+    "workout_type": "Push",
+    "notes": "Recovered well from weekend fatigue.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "bench_press",
+        "sets": [
+          { "weight": 135, "reps": 9 },
+          { "weight": 135, "reps": 8 },
+          { "weight": 135, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "incline_dumbbell_press",
+        "sets": [
+          { "weight": 55, "reps": 9 },
+          { "weight": 55, "reps": 8 },
+          { "weight": 55, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "overhead_press",
+        "sets": [
+          { "weight": 85, "reps": 9 },
+          { "weight": 85, "reps": 8 },
+          { "weight": 85, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "lateral_raise",
+        "sets": [
+          { "weight": 20, "reps": 15 },
+          { "weight": 20, "reps": 14 },
+          { "weight": 20, "reps": 13 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_pushdown",
+        "sets": [
+          { "weight": 60, "reps": 11 },
+          { "weight": 60, "reps": 10 },
+          { "weight": 60, "reps": 9 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_dip",
+        "sets": [
+          { "weight": 0, "reps": 13 },
+          { "weight": 0, "reps": 11 },
+          { "weight": 0, "reps": 10 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-10",
+    "workout_type": "Pull",
+    "notes": "Slept poorly; scaled effort and missed target reps on compounds.",
+    "performance_outcome": "fail",
+    "exercises": [
+      {
+        "canonical_name": "deadlift",
+        "sets": [
+          { "weight": 230, "reps": 5 },
+          { "weight": 230, "reps": 4 },
+          { "weight": 230, "reps": 4 }
+        ]
+      },
+      {
+        "canonical_name": "barbell_row",
+        "sets": [
+          { "weight": 150, "reps": 8 },
+          { "weight": 150, "reps": 7 },
+          { "weight": 150, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "lat_pulldown",
+        "sets": [
+          { "weight": 125, "reps": 9 },
+          { "weight": 125, "reps": 8 },
+          { "weight": 125, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "pull_up",
+        "sets": [
+          { "weight": 0, "reps": 7 },
+          { "weight": 0, "reps": 6 },
+          { "weight": 0, "reps": 5 }
+        ]
+      },
+      {
+        "canonical_name": "face_pull",
+        "sets": [
+          { "weight": 35, "reps": 14 },
+          { "weight": 35, "reps": 13 },
+          { "weight": 35, "reps": 12 }
+        ]
+      },
+      {
+        "canonical_name": "dumbbell_curl",
+        "sets": [
+          { "weight": 30, "reps": 11 },
+          { "weight": 30, "reps": 10 },
+          { "weight": 30, "reps": 9 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-12",
+    "workout_type": "Legs",
+    "notes": "Improved squat speed; unilateral work felt harder than expected.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "barbell_squat",
+        "sets": [
+          { "weight": 195, "reps": 8 },
+          { "weight": 195, "reps": 7 },
+          { "weight": 195, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "romanian_deadlift",
+        "sets": [
+          { "weight": 175, "reps": 9 },
+          { "weight": 175, "reps": 8 },
+          { "weight": 175, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "leg_press",
+        "sets": [
+          { "weight": 340, "reps": 12 },
+          { "weight": 340, "reps": 11 },
+          { "weight": 340, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "leg_curl",
+        "sets": [
+          { "weight": 100, "reps": 12 },
+          { "weight": 100, "reps": 10 },
+          { "weight": 100, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "standing_calf_raise",
+        "sets": [
+          { "weight": 150, "reps": 15 },
+          { "weight": 150, "reps": 14 },
+          { "weight": 150, "reps": 13 }
+        ]
+      },
+      {
+        "canonical_name": "bulgarian_split_squat",
+        "sets": [
+          { "weight": 35, "reps": 10 },
+          { "weight": 35, "reps": 9 },
+          { "weight": 35, "reps": 8 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-14",
+    "workout_type": "Full Body",
+    "notes": "Heavy but controlled day; close to limit on overhead press.",
+    "performance_outcome": "near_success",
+    "exercises": [
+      {
+        "canonical_name": "deadlift",
+        "sets": [
+          { "weight": 235, "reps": 5 },
+          { "weight": 235, "reps": 5 },
+          { "weight": 235, "reps": 4 }
+        ]
+      },
+      {
+        "canonical_name": "bench_press",
+        "sets": [
+          { "weight": 140, "reps": 7 },
+          { "weight": 140, "reps": 6 },
+          { "weight": 140, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "barbell_row",
+        "sets": [
+          { "weight": 150, "reps": 9 },
+          { "weight": 150, "reps": 8 },
+          { "weight": 150, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "overhead_press",
+        "sets": [
+          { "weight": 90, "reps": 7 },
+          { "weight": 90, "reps": 6 },
+          { "weight": 90, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "pull_up",
+        "sets": [
+          { "weight": 0, "reps": 8 },
+          { "weight": 0, "reps": 7 },
+          { "weight": 0, "reps": 6 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-15",
+    "workout_type": "Push",
+    "notes": "Volume-focused push day with chest accessory emphasis.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "incline_bench_press",
+        "sets": [
+          { "weight": 130, "reps": 8 },
+          { "weight": 130, "reps": 7 },
+          { "weight": 130, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "dumbbell_bench_press",
+        "sets": [
+          { "weight": 65, "reps": 9 },
+          { "weight": 65, "reps": 8 },
+          { "weight": 65, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "seated_dumbbell_press",
+        "sets": [
+          { "weight": 60, "reps": 9 },
+          { "weight": 60, "reps": 8 },
+          { "weight": 60, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "cable_chest_fly",
+        "sets": [
+          { "weight": 35, "reps": 13 },
+          { "weight": 35, "reps": 12 },
+          { "weight": 35, "reps": 11 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_pushdown",
+        "sets": [
+          { "weight": 60, "reps": 12 },
+          { "weight": 60, "reps": 11 },
+          { "weight": 60, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_dip",
+        "sets": [
+          { "weight": 0, "reps": 12 },
+          { "weight": 0, "reps": 11 },
+          { "weight": 0, "reps": 9 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-16",
+    "workout_type": "Pull",
+    "notes": "Heavy pull day, managed to progress while keeping form strict.",
+    "performance_outcome": "near_success",
+    "exercises": [
+      {
+        "canonical_name": "deadlift",
+        "sets": [
+          { "weight": 245, "reps": 4 },
+          { "weight": 245, "reps": 4 },
+          { "weight": 245, "reps": 3 }
+        ]
+      },
+      {
+        "canonical_name": "barbell_row",
+        "sets": [
+          { "weight": 155, "reps": 8 },
+          { "weight": 155, "reps": 7 },
+          { "weight": 155, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "lat_pulldown",
+        "sets": [
+          { "weight": 130, "reps": 9 },
+          { "weight": 130, "reps": 8 },
+          { "weight": 130, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "pull_up",
+        "sets": [
+          { "weight": 0, "reps": 9 },
+          { "weight": 0, "reps": 7 },
+          { "weight": 0, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "face_pull",
+        "sets": [
+          { "weight": 40, "reps": 14 },
+          { "weight": 40, "reps": 13 },
+          { "weight": 40, "reps": 12 }
+        ]
+      },
+      {
+        "canonical_name": "ez_bar_curl",
+        "sets": [
+          { "weight": 70, "reps": 10 },
+          { "weight": 70, "reps": 9 },
+          { "weight": 70, "reps": 8 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-17",
+    "workout_type": "Legs",
+    "notes": "Best lower-body session of the block.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "barbell_squat",
+        "sets": [
+          { "weight": 205, "reps": 6 },
+          { "weight": 205, "reps": 6 },
+          { "weight": 205, "reps": 5 }
+        ]
+      },
+      {
+        "canonical_name": "romanian_deadlift",
+        "sets": [
+          { "weight": 185, "reps": 8 },
+          { "weight": 185, "reps": 8 },
+          { "weight": 185, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "leg_press",
+        "sets": [
+          { "weight": 360, "reps": 11 },
+          { "weight": 360, "reps": 10 },
+          { "weight": 360, "reps": 9 }
+        ]
+      },
+      {
+        "canonical_name": "leg_curl",
+        "sets": [
+          { "weight": 105, "reps": 11 },
+          { "weight": 105, "reps": 10 },
+          { "weight": 105, "reps": 9 }
+        ]
+      },
+      {
+        "canonical_name": "standing_calf_raise",
+        "sets": [
+          { "weight": 160, "reps": 14 },
+          { "weight": 160, "reps": 13 },
+          { "weight": 160, "reps": 12 }
+        ]
+      },
+      {
+        "canonical_name": "ab_rollout",
+        "sets": [
+          { "weight": 0, "reps": 12 },
+          { "weight": 0, "reps": 11 },
+          { "weight": 0, "reps": 10 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-19",
+    "workout_type": "Push",
+    "notes": "Top push performance this cycle.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "bench_press",
+        "sets": [
+          { "weight": 140, "reps": 8 },
+          { "weight": 140, "reps": 7 },
+          { "weight": 140, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "incline_dumbbell_press",
+        "sets": [
+          { "weight": 60, "reps": 8 },
+          { "weight": 60, "reps": 8 },
+          { "weight": 60, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "overhead_press",
+        "sets": [
+          { "weight": 90, "reps": 8 },
+          { "weight": 90, "reps": 7 },
+          { "weight": 90, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "lateral_raise",
+        "sets": [
+          { "weight": 25, "reps": 12 },
+          { "weight": 25, "reps": 12 },
+          { "weight": 25, "reps": 11 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_pushdown",
+        "sets": [
+          { "weight": 65, "reps": 10 },
+          { "weight": 65, "reps": 9 },
+          { "weight": 65, "reps": 9 }
+        ]
+      },
+      {
+        "canonical_name": "triceps_dip",
+        "sets": [
+          { "weight": 0, "reps": 14 },
+          { "weight": 0, "reps": 12 },
+          { "weight": 0, "reps": 10 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-21",
+    "workout_type": "Pull",
+    "notes": "Higher volume back work, good pump and controlled reps.",
+    "performance_outcome": "success",
+    "exercises": [
+      {
+        "canonical_name": "barbell_row",
+        "sets": [
+          { "weight": 155, "reps": 9 },
+          { "weight": 155, "reps": 8 },
+          { "weight": 155, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "seated_cable_row",
+        "sets": [
+          { "weight": 140, "reps": 11 },
+          { "weight": 140, "reps": 10 },
+          { "weight": 140, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "lat_pulldown",
+        "sets": [
+          { "weight": 130, "reps": 10 },
+          { "weight": 130, "reps": 9 },
+          { "weight": 130, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "pull_up",
+        "sets": [
+          { "weight": 0, "reps": 8 },
+          { "weight": 0, "reps": 7 },
+          { "weight": 0, "reps": 7 }
+        ]
+      },
+      {
+        "canonical_name": "hammer_curl",
+        "sets": [
+          { "weight": 30, "reps": 11 },
+          { "weight": 30, "reps": 10 },
+          { "weight": 30, "reps": 9 }
+        ]
+      },
+      {
+        "canonical_name": "face_pull",
+        "sets": [
+          { "weight": 40, "reps": 15 },
+          { "weight": 40, "reps": 14 },
+          { "weight": 40, "reps": 13 }
+        ]
+      }
+    ]
+  },
+  {
+    "date": "2026-03-22",
+    "workout_type": "Legs",
+    "notes": "End-of-block fatigue day; intentionally reduced loading.",
+    "performance_outcome": "near_success",
+    "exercises": [
+      {
+        "canonical_name": "barbell_squat",
+        "sets": [
+          { "weight": 195, "reps": 7 },
+          { "weight": 195, "reps": 6 },
+          { "weight": 195, "reps": 6 }
+        ]
+      },
+      {
+        "canonical_name": "romanian_deadlift",
+        "sets": [
+          { "weight": 175, "reps": 9 },
+          { "weight": 175, "reps": 8 },
+          { "weight": 175, "reps": 8 }
+        ]
+      },
+      {
+        "canonical_name": "leg_press",
+        "sets": [
+          { "weight": 340, "reps": 12 },
+          { "weight": 340, "reps": 11 },
+          { "weight": 340, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "walking_lunge",
+        "sets": [
+          { "weight": 40, "reps": 12 },
+          { "weight": 40, "reps": 11 },
+          { "weight": 40, "reps": 10 }
+        ]
+      },
+      {
+        "canonical_name": "seated_calf_raise",
+        "sets": [
+          { "weight": 135, "reps": 15 },
+          { "weight": 135, "reps": 14 },
+          { "weight": 135, "reps": 13 }
+        ]
+      },
+      {
+        "canonical_name": "plank",
+        "sets": [
+          { "weight": 0, "reps": 1 },
+          { "weight": 0, "reps": 1 },
+          { "weight": 0, "reps": 1 }
+        ]
+      }
+    ]
+  }
+]

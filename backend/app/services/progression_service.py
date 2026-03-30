@@ -1,4 +1,5 @@
 from typing import List, Optional
+from uuid import UUID
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
@@ -148,7 +149,7 @@ def _build_target_reps_str(rep_min: int, rep_max: int) -> str:
 # Orchestration functions — use pure functions above + DB access
 # ---------------------------------------------------------------------------
 
-def analyze_progression(db: Session, user_id: int, exercise_id: int):
+def analyze_progression(db: Session, user_id: int, exercise_id: UUID | str):
     """
     Analyze recent workout sets to determine progression.
 
@@ -156,6 +157,7 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int):
     (falls back to defaults if the exercise has no metadata).
     Plateau is detected via detect_plateau() across the last 3 session outcomes.
     """
+    exercise_id = int(exercise_id)
     exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
     if not exercise:
         raise HTTPException(status_code=404, detail="Exercise not found")
@@ -171,7 +173,7 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int):
     if not sets:
         return {
             "exercise_id": exercise_id,
-            "exercise_name": exercise.name,
+            "exercise_name": exercise.display_name,
             "exercise_type": exercise.exercise_type,
             "recent_sets": [],
             "trend": "stable",
@@ -208,7 +210,7 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int):
 
     return {
         "exercise_id": exercise_id,
-        "exercise_name": exercise.name,
+        "exercise_name": exercise.display_name,
         "exercise_type": exercise.exercise_type,
         "recent_sets": recent_sets,
         "trend": trend,
@@ -221,7 +223,7 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int):
 def generate_recommendation(
     db: Session,
     user_id: int,
-    exercise_id: int,
+    exercise_id: UUID | str,
     user_experience: Optional[str] = None,
 ) -> dict:
     """
@@ -244,6 +246,7 @@ def generate_recommendation(
             "is_deload":     bool,
         }
     """
+    exercise_id = int(exercise_id)
     analysis = analyze_progression(db, user_id, exercise_id)
     exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
     rep_min, rep_max = _get_rep_range(exercise)
@@ -341,7 +344,7 @@ def generate_recommendation(
 def compute_post_workout_progression(
     db: Session,
     user_id: int,
-    exercise_id: int,
+    exercise_id: UUID | str,
     user_experience: Optional[str] = None,
 ) -> dict:
     """
@@ -350,4 +353,4 @@ def compute_post_workout_progression(
     Delegates entirely to generate_recommendation() — no logic duplication.
     Returns a flat dict suitable for serialisation.
     """
-    return generate_recommendation(db, user_id, exercise_id, user_experience)
+    return generate_recommendation(db, user_id, str(exercise_id), user_experience)

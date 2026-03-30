@@ -1,7 +1,7 @@
 from datetime import date, datetime
 from typing import Optional
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 
 # --- Request schemas ---
@@ -10,10 +10,29 @@ class WorkoutCreate(BaseModel):
     date: date
     notes: Optional[str] = Field(None, max_length=2000)
 
+    @field_validator("date")
+    @classmethod
+    def validate_date_bounds(cls, v: date) -> date:
+        if v > date.today():
+            raise ValueError("Workout date cannot be in the future")
+        if v.year < 2000:
+            raise ValueError("Workout date must be after year 2000")
+        return v
+
 
 class WorkoutUpdate(BaseModel):
     date: Optional[date] = None
     notes: Optional[str] = Field(None, max_length=2000)
+
+    @field_validator("date")
+    @classmethod
+    def validate_date_bounds(cls, v: date | None) -> date | None:
+        if v is not None:
+            if v > date.today():
+                raise ValueError("Workout date cannot be in the future")
+            if v.year < 2000:
+                raise ValueError("Workout date must be after year 2000")
+        return v
 
 
 # --- Response schemas ---

@@ -98,6 +98,9 @@ export default function WorkoutHistoryScreen() {
         >
           <View style={styles.headerTop}>
             <Text style={styles.cardDate}>{formatDate(item.date)}</Text>
+            <Text style={styles.cardTime}>
+              #{item.id} · {new Date(item.created_at).toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' })}
+            </Text>
             <Text style={styles.chevron}>{isExpanded ? '▲' : '▼'}</Text>
           </View>
           {item.notes ? <Text style={styles.cardNotes}>{item.notes}</Text> : null}
@@ -120,7 +123,12 @@ export default function WorkoutHistoryScreen() {
                     <View key={s.id} style={styles.setRow}>
                       <Text style={styles.setNum}>Set {s.set_number}</Text>
                       <Text style={styles.setDetail}>
-                        {s.weight} lbs × {s.reps} reps{s.rpe ? `  ·  RPE ${s.rpe}` : ''}
+                        {s.weight} lbs × {s.reps} reps
+                        {s.rpe ? (
+                          <Text style={s.rpe >= 8 ? styles.rpeHigh : styles.rpeLow}>
+                            {'  ·  RPE '}{s.rpe}
+                          </Text>
+                        ) : null}
                       </Text>
                     </View>
                   ))}
@@ -211,6 +219,9 @@ const styles = StyleSheet.create({
   setRow:    { flexDirection: 'row', justifyContent: 'space-between', paddingVertical: 4, borderTopWidth: 1, borderTopColor: C.divider },
   setNum:    { fontSize: 12, color: C.muted, fontWeight: '600', width: 48 },
   setDetail: { fontSize: 13, color: C.warm },
+  rpeHigh:   { color: C.negative, fontWeight: '700' },
+  rpeLow:    { color: C.muted },
+  cardTime:  { fontSize: 11, color: C.muted, fontWeight: '500', flex: 1, textAlign: 'center' },
 
   emptyTitle:    { fontSize: 18, color: C.warm, fontWeight: '600', marginBottom: 8 },
   emptySubtitle: { fontSize: 14, color: C.muted },

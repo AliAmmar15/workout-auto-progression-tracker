@@ -1,10 +1,15 @@
 from typing import Optional, Union
 
-from pydantic import BaseModel
+from pydantic import BaseModel, field_validator
 
 
 class ProgressionResponse(BaseModel):
-    exercise_id: int
+    exercise_id: str
+
+    @field_validator("exercise_id", mode="before")
+    @classmethod
+    def coerce_exercise_id(cls, v):
+        return str(v)
     exercise_name: str
     exercise_type: Optional[str] = None
     recent_sets: list[dict]
@@ -16,7 +21,12 @@ class ProgressionResponse(BaseModel):
 
 
 class RecommendationResponse(BaseModel):
-    exercise_id: int
+    exercise_id: str
+
+    @field_validator("exercise_id", mode="before")
+    @classmethod
+    def coerce_exercise_id(cls, v):
+        return str(v)
     action: str  # "increase" | "maintain" | "decrease" | "deload" | "add_weight"
     next_weight: float
     # target_reps can be int (e.g. 8) or range string (e.g. "8-12")

@@ -34,3 +34,18 @@ def get_current_user(
         )
         
     return user
+
+
+def get_optional_current_user(
+    token: str = Depends(oauth2_scheme),
+    db: Session = Depends(get_db),
+) -> User | None:
+    """Resolve the user if a valid token exists, otherwise return None."""
+    if not token:
+        return None
+
+    user_id = decode_access_token(token)
+    if user_id is None:
+        return None
+
+    return db.query(User).filter(User.id == user_id).first()

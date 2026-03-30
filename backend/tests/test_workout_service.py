@@ -39,16 +39,16 @@ def test_get_user_workouts(db_session, test_user):
 def test_get_user_workouts_filtered(db_session, test_user):
     today = date.today()
     yesterday = today - timedelta(days=1)
-    tomorrow = today + timedelta(days=1)
+    day_before = today - timedelta(days=2)
     
+    create_workout(db_session, test_user.id, WorkoutCreate(date=day_before))
     create_workout(db_session, test_user.id, WorkoutCreate(date=yesterday))
     create_workout(db_session, test_user.id, WorkoutCreate(date=today))
-    create_workout(db_session, test_user.id, WorkoutCreate(date=tomorrow))
     
-    # Filter between yesterday and today
-    workouts = get_user_workouts(db_session, test_user.id, date_from=yesterday, date_to=today)
+    # Filter between day_before and yesterday
+    workouts = get_user_workouts(db_session, test_user.id, date_from=day_before, date_to=yesterday)
     assert len(workouts) == 2
-    assert all(w.date <= today and w.date >= yesterday for w in workouts)
+    assert all(w.date <= yesterday and w.date >= day_before for w in workouts)
 
 def test_get_workout_by_id_success(db_session, test_user):
     data = WorkoutCreate(date=date.today())

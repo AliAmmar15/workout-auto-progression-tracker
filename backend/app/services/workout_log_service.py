@@ -33,11 +33,21 @@ def log_workout(db: Session, user_id: int, data: WorkoutLogCreate) -> Workout:
     """
     # Validate all exercise IDs exist
     exercise_ids = {s.exercise_id for s in data.sets}
+    int_ids = {int(eid) for eid in exercise_ids}
+
+    # Validate no duplicate set numbers
+    set_numbers = [s.set_number for s in data.sets]
+    if len(set_numbers) != len(set(set_numbers)):
+        raise HTTPException(
+            status_code=422,
+            detail="Duplicate set_number values are not allowed within a single workout",
+        )
+
     existing = (
-        db.query(Exercise.id).filter(Exercise.id.in_(exercise_ids)).all()
+        db.query(Exercise.id).filter(Exercise.id.in_(int_ids)).all()
     )
     found_ids = {row[0] for row in existing}
-    missing = exercise_ids - found_ids
+    missing = {str(eid) for eid in int_ids} - {str(r) for r in found_ids}
     if missing:
         raise HTTPException(
             status_code=404,
@@ -57,7 +67,7 @@ def log_workout(db: Session, user_id: int, data: WorkoutLogCreate) -> Workout:
     for set_data in data.sets:
         workout_set = WorkoutSet(
             workout_id=workout.id,
-            exercise_id=set_data.exercise_id,
+            exercise_id=int(set_data.exercise_id),
             set_number=set_data.set_number,
             weight=set_data.weight,
             reps=set_data.reps,
@@ -92,14 +102,14 @@ def log_workout_with_progression(db: Session, user_id: int, data: WorkoutLogCrea
     unique_exercise_ids = list({s.exercise_id for s in data.sets})
 
     # Build a name lookup so we can inject exercise_name into each progression
-    exercises = db.query(Exercise).filter(Exercise.id.in_(unique_exercise_ids)).all()
-    name_by_id = {e.id: e.name for e in exercises}
+    exercises = db.query(Exercise).filter(Exercise.id.in_([int(eid) for eid in unique_exercise_ids])).all()
+    name_by_id = {e.id: e.display_name for e in exercises}
 
     progressions = []
     for ex_id in unique_exercise_ids:
         try:
-            prog = compute_post_workout_progression(db, user_id, ex_id)
-            prog["exercise_name"] = name_by_id.get(ex_id, "")
+            prog = compute_post_workout_progression(db, user_id, int(ex_id))
+            prog["exercise_name"] = name_by_id.get(int(ex_id), "")
             progressions.append(prog)
         except Exception as e:
             # Never fail the log response due to a progression error

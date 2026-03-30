@@ -12,17 +12,17 @@ router = APIRouter()
 
 @router.get("/{exercise_id}/progression", response_model=ProgressionResponse)
 def get_progression(
-    exercise_id: int,
+    exercise_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
     """Get progression insights for an exercise based on user's recent sets."""
-    return progression_service.analyze_progression(db, current_user.id, exercise_id)
+    return progression_service.analyze_progression(db, current_user.id, int(exercise_id))
 
 
 @router.get("/{exercise_id}/recommendation", response_model=RecommendationResponse)
 def get_recommendation(
-    exercise_id: int,
+    exercise_id: str,
     db: Session = Depends(get_db),
     current_user: User = Depends(get_current_user),
 ):
@@ -34,7 +34,7 @@ def get_recommendation(
     return progression_service.generate_recommendation(
         db,
         current_user.id,
-        exercise_id,
+        int(exercise_id),
         user_experience=current_user.experience_level,
     )
 

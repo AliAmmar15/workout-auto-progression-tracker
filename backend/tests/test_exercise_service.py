@@ -1,12 +1,13 @@
 import pytest
 from fastapi import HTTPException
 
-from app.schemas.exercise import ExerciseCreate, ExerciseUpdate
+from app.schemas.exercise import CustomExerciseCreate, ExerciseCreate, ExerciseUpdate
 from app.services.exercise_service import (
     get_all_exercises,
     get_exercise_by_id,
     get_exercise_by_name,
     create_exercise,
+    create_custom_exercise,
     update_exercise,
     delete_exercise,
 )
@@ -209,4 +210,91 @@ class TestExerciseNormalization:
         exercise = create_exercise(db_session, data)
         assert exercise.progression_rate == 0.05
         assert exercise.exercise_type == "compound"
+
+
+class TestCustomExerciseSystem:
+    def test_create_custom_exercise_success(self, db_session, test_user):
+        created = create_custom_exercise(
+            db_session,
+            test_user.id,
+            CustomExerciseCreate(
+                display_name="Flat Machine Press",
+                muscle_group="chest",
+                equipment="machine",
+            ),
+        )
+
+        assert created.id is not None
+        assert created.display_name == "Flat Machine Press"
+        assert created.canonical_name == "flat_machine_press"
+        assert created.is_custom is True
+        assert created.user_id == test_user.id
+
+    def test_create_custom_exercise_duplicate_for_same_user(self, db_session, test_user):
+        create_custom_exercise(
+            db_session,
+            test_user.id,
+            CustomExerciseCreate(
+                display_name="Flat Machine Press",
+                muscle_group="chest",
+                equipment="machine",
+            ),
+        )
+
+        with pytest.raises(HTTPException) as exc_info:
+            create_custom_exercise(
+                db_session,
+                test_user.id,
+                CustomExerciseCreate(
+                    display_name="flat   machine  press",
+                    muscle_group="chest",
+                    equipment="machine",
+                ),
+            )
+
+        assert exc_info.value.status_code == 409
+
+    def test_get_all_exercises_respects_user_scope(self, db_session, test_user):
+        second_user = test_user.__class__(
+            username="testuser_two",
+            email="test2@example.com",
+            password_hash=test_user.password_hash,
+        )
+        db_session.add(second_user)
+        db_session.commit()
+        db_session.refresh(second_user)
+
+        default_ex = create_exercise(
+            db_session,
+            ExerciseCreate(name="Bench Press", muscle_group="Chest"),
+        )
+        custom_user1 = create_custom_exercise(
+            db_session,
+            test_user.id,
+            CustomExerciseCreate(
+                display_name="My Chest Press",
+                muscle_group="chest",
+                equipment="machine",
+            ),
+        )
+        _ = create_custom_exercise(
+            db_session,
+            second_user.id,
+            CustomExerciseCreate(
+                display_name="Other User Press",
+                muscle_group="chest",
+                equipment="machine",
+            ),
+        )
+
+        visible_user1 = get_all_exercises(db_session, user_id=test_user.id)
+        ids_user1 = {e.id for e in visible_user1}
+        assert default_ex.id in ids_user1
+        assert custom_user1.id in ids_user1
+        assert len(ids_user1) == 2
+
+        visible_anonymous = get_all_exercises(db_session)
+        ids_anonymous = {e.id for e in visible_anonymous}
+        assert default_ex.id in ids_anonymous
+        assert custom_user1.id not in ids_anonymous
 

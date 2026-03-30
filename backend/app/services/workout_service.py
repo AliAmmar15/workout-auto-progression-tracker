@@ -22,7 +22,7 @@ def get_user_workouts(
     """
     query = (
         db.query(Workout)
-        .options(joinedload(Workout.sets))
+        .options(joinedload(Workout.sets).joinedload(WorkoutSet.exercise))
         .filter(Workout.user_id == user_id)
     )
 

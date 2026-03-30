@@ -30,7 +30,11 @@ class User(Base):
     workouts: Mapped[list["Workout"]] = relationship(
         back_populates="user", cascade="all, delete-orphan"
     )
+    custom_exercises: Mapped[list["Exercise"]] = relationship(
+        back_populates="owner", cascade="all, delete-orphan"
+    )
 
 
 # Avoid circular import — Workout is in workout.py
 from app.models.workout import Workout  # noqa: E402, F401
+from app.models.exercise import Exercise  # noqa: E402, F401
