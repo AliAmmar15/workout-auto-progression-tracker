@@ -12,23 +12,28 @@ import {
 import useAuthStore from '../store/useAuthStore';
 import { login, register, UserResponse } from '../services/api';
 
+const C = {
+  bg:      '#0D0E12',
+  surface: '#15171D',
+  accent:  '#E8522A',
+  warm:    '#F5F0E8',
+  muted:   '#52576B',
+  divider: '#1E2028',
+  error:   '#E84A4A',
+};
+
 type Mode = 'login' | 'register';
 
-/**
- * AuthScreen — login and registration form.
- * On success, stores the JWT via Zustand so all other screens can make
- * authenticated requests.
- */
 export default function AuthScreen() {
   const setToken = useAuthStore((s) => s.setToken);
-  const setUser = useAuthStore((s) => s.setUser);
+  const setUser  = useAuthStore((s) => s.setUser);
 
-  const [mode, setMode] = useState<Mode>('login');
+  const [mode,     setMode]     = useState<Mode>('login');
   const [username, setUsername] = useState('');
-  const [email, setEmail] = useState('');
+  const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [error,    setError]    = useState<string | null>(null);
+  const [loading,  setLoading]  = useState(false);
 
   async function handleSubmit() {
     setError(null);
@@ -43,7 +48,6 @@ export default function AuthScreen() {
         setToken(tokenResp.access_token);
       } else {
         const userResp: UserResponse = await register(username, email, password);
-        // After registering, log in automatically
         const tokenResp = await login(email, password);
         setToken(tokenResp.access_token);
         setUser({ id: userResp.id, username: userResp.username, email: userResp.email });
@@ -57,35 +61,41 @@ export default function AuthScreen() {
 
   return (
     <KeyboardAvoidingView
-      style={styles.container}
+      style={s.screen}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
     >
-      <View style={styles.card}>
-        <Text style={styles.appName}>💪 WorkoutTracker</Text>
-        <Text style={styles.subtitle}>Progression-based strength training</Text>
+      <View style={s.inner}>
 
-        <View style={styles.toggle}>
+        {/* ── Brand block ── */}
+        <View style={s.brandBlock}>
+          <Text style={s.wordmark}>Workout{'\n'}Tracker.</Text>
+          <Text style={s.tagline}>Strength built on data.</Text>
+        </View>
+
+        {/* ── Mode toggle ── */}
+        <View style={s.toggleRow}>
           <TouchableOpacity
-            style={[styles.toggleBtn, mode === 'login' && styles.toggleBtnActive]}
+            style={[s.toggleBtn, mode === 'login' && s.toggleBtnActive]}
             onPress={() => { setMode('login'); setError(null); }}
           >
-            <Text style={[styles.toggleText, mode === 'login' && styles.toggleTextActive]}>Login</Text>
+            <Text style={[s.toggleText, mode === 'login' && s.toggleTextActive]}>Sign In</Text>
           </TouchableOpacity>
           <TouchableOpacity
-            style={[styles.toggleBtn, mode === 'register' && styles.toggleBtnActive]}
+            style={[s.toggleBtn, mode === 'register' && s.toggleBtnActive]}
             onPress={() => { setMode('register'); setError(null); }}
           >
-            <Text style={[styles.toggleText, mode === 'register' && styles.toggleTextActive]}>Register</Text>
+            <Text style={[s.toggleText, mode === 'register' && s.toggleTextActive]}>Register</Text>
           </TouchableOpacity>
         </View>
 
+        {/* ── Fields ── */}
         {mode === 'register' && (
           <>
-            <Text style={styles.label}>Username</Text>
+            <Text style={s.label}>USERNAME</Text>
             <TextInput
-              style={styles.input}
-              placeholder="your_name"
-              placeholderTextColor="#555"
+              style={s.input}
+              placeholder="your_handle"
+              placeholderTextColor={C.muted}
               autoCapitalize="none"
               value={username}
               onChangeText={setUsername}
@@ -93,33 +103,33 @@ export default function AuthScreen() {
           </>
         )}
 
-        <Text style={styles.label}>Email</Text>
+        <Text style={s.label}>EMAIL</Text>
         <TextInput
-          style={styles.input}
+          style={s.input}
           placeholder="you@example.com"
-          placeholderTextColor="#555"
+          placeholderTextColor={C.muted}
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
 
-        <Text style={styles.label}>Password</Text>
+        <Text style={s.label}>PASSWORD</Text>
         <TextInput
-          style={styles.input}
+          style={s.input}
           placeholder="••••••••"
-          placeholderTextColor="#555"
+          placeholderTextColor={C.muted}
           secureTextEntry
           value={password}
           onChangeText={setPassword}
         />
 
-        {error ? <Text style={styles.error}>{error}</Text> : null}
+        {error ? <Text style={s.error}>{error}</Text> : null}
 
-        <TouchableOpacity style={styles.button} onPress={handleSubmit} disabled={loading}>
+        <TouchableOpacity style={s.submitBtn} onPress={handleSubmit} disabled={loading} activeOpacity={0.85}>
           {loading
-            ? <ActivityIndicator color="#fff" />
-            : <Text style={styles.buttonText}>{mode === 'login' ? 'Sign In' : 'Create Account'}</Text>
+            ? <ActivityIndicator color={C.warm} />
+            : <Text style={s.submitText}>{mode === 'login' ? 'Sign In →' : 'Create Account →'}</Text>
           }
         </TouchableOpacity>
       </View>
@@ -127,71 +137,40 @@ export default function AuthScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
-    justifyContent: 'center',
-    padding: 24,
+const s = StyleSheet.create({
+  screen: { flex: 1, backgroundColor: C.bg, justifyContent: 'center' },
+  inner:  { paddingHorizontal: 28, paddingVertical: 32 },
+
+  // Brand
+  brandBlock: { marginBottom: 48 },
+  wordmark:   { color: C.warm, fontSize: 48, fontWeight: '900', lineHeight: 50, letterSpacing: -2 },
+  tagline:    { color: C.muted, fontSize: 13, marginTop: 10, letterSpacing: 0.5 },
+
+  // Toggle
+  toggleRow:       { flexDirection: 'row', borderBottomWidth: 1, borderBottomColor: C.divider, marginBottom: 28 },
+  toggleBtn:       { paddingVertical: 10, paddingHorizontal: 4, marginRight: 24 },
+  toggleBtnActive: { borderBottomWidth: 2, borderBottomColor: C.accent },
+  toggleText:      { color: C.muted, fontWeight: '600', fontSize: 14 },
+  toggleTextActive:{ color: C.warm, fontWeight: '700' },
+
+  // Fields
+  label: {
+    color: C.muted, fontSize: 10, fontWeight: '700',
+    letterSpacing: 1.2, textTransform: 'uppercase', marginBottom: 8, marginTop: 16,
   },
-  card: {
-    backgroundColor: '#14142A',
-    borderRadius: 20,
-    padding: 28,
-    borderWidth: 1,
-    borderColor: '#2E2E4A',
-  },
-  appName: {
-    fontSize: 28,
-    fontWeight: '800',
-    color: '#fff',
-    textAlign: 'center',
-    marginBottom: 6,
-  },
-  subtitle: {
-    fontSize: 13,
-    color: '#555',
-    textAlign: 'center',
-    marginBottom: 28,
-  },
-  toggle: {
-    flexDirection: 'row',
-    backgroundColor: '#0F0F1A',
-    borderRadius: 10,
-    padding: 4,
-    marginBottom: 24,
-  },
-  toggleBtn: {
-    flex: 1,
-    paddingVertical: 8,
-    borderRadius: 8,
-    alignItems: 'center',
-  },
-  toggleBtnActive: { backgroundColor: '#6C63FF' },
-  toggleText: { color: '#555', fontWeight: '600', fontSize: 14 },
-  toggleTextActive: { color: '#fff' },
-  label: { fontSize: 12, color: '#888', marginBottom: 6, marginTop: 12 },
   input: {
-    backgroundColor: '#0F0F1A',
-    borderRadius: 10,
-    padding: 13,
-    color: '#fff',
-    fontSize: 15,
-    borderWidth: 1,
-    borderColor: '#2E2E4A',
+    backgroundColor: C.surface, borderRadius: 4,
+    paddingVertical: 14, paddingHorizontal: 14,
+    color: C.warm, fontSize: 15,
+    borderWidth: 1, borderColor: C.divider,
   },
-  error: {
-    color: '#ef4444',
-    fontSize: 13,
-    marginTop: 12,
-    textAlign: 'center',
+
+  error: { color: C.error, fontSize: 13, marginTop: 14 },
+
+  // CTA
+  submitBtn: {
+    backgroundColor: C.accent, borderRadius: 4,
+    paddingVertical: 16, alignItems: 'center', marginTop: 28,
   },
-  button: {
-    backgroundColor: '#6C63FF',
-    borderRadius: 12,
-    padding: 15,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  buttonText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  submitText: { color: C.warm, fontSize: 15, fontWeight: '700', letterSpacing: 0.3 },
 });

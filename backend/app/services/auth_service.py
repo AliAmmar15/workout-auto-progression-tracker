@@ -22,11 +22,31 @@ def register(db: Session, data: UserCreate) -> User:
         username=data.username,
         email=data.email,
         password_hash=hash_password(data.password),
+        weight_lbs=data.weight_lbs,
+        height_inches=data.height_inches,
+        age=data.age,
+        experience_level=data.experience_level,
     )
     db.add(user)
     db.commit()
     db.refresh(user)
     return user
+
+
+def login(db: Session, data: UserLogin) -> TokenResponse:
+    """Authenticate a user and return a JWT access token.
+
+    Looks up the user by email and verifies the password against the
+    stored bcrypt hash. Returns a TokenResponse containing the JWT.
+    Raises 401 if credentials are invalid.
+    """
+    user = db.query(User).filter(User.email == data.email).first()
+    if not user or not verify_password(data.password, user.password_hash):
+        raise HTTPException(status_code=401, detail="Invalid email or password")
+
+    token = create_access_token(user.id)
+    return TokenResponse(access_token=token)
+
 
 
 def login(db: Session, data: UserLogin) -> TokenResponse:

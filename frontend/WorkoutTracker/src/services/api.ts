@@ -1,10 +1,9 @@
 /**
  * Typed API client for the Workout Progression Tracker backend.
  * All functions accept a JWT token and return typed response objects.
- * Base URL points at the FastAPI backend (localhost:8000 in dev).
  */
 
-const BASE_URL = 'http://10.0.0.114:8000/api/v1';
+import { BASE_URL } from '../config';
 
 // --------------------------------------------------------------------------
 // Types
@@ -59,8 +58,9 @@ export interface ProgressionResponse {
 
 export interface RecommendationResponse {
   exercise_id: number;
-  recommended_weight: number;
-  recommended_reps: number;
+  action: string;
+  next_weight: number;
+  target_reps: number | string;
   reasoning: string;
   is_deload: boolean;
 }

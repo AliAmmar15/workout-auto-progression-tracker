@@ -6,6 +6,11 @@ CREATE TABLE users (
     username VARCHAR(50) NOT NULL UNIQUE,
     email VARCHAR(255) NOT NULL UNIQUE,
     password_hash VARCHAR(255) NOT NULL,
+    -- Physical profile (all nullable for backward compatibility)
+    weight_lbs FLOAT,
+    height_inches FLOAT,
+    age INTEGER,
+    experience_level VARCHAR(20),
     created_at TIMESTAMP NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
@@ -15,6 +20,11 @@ CREATE TABLE exercises (
     name VARCHAR(100) NOT NULL UNIQUE,
     muscle_group VARCHAR(50) NOT NULL,
     equipment VARCHAR(50) NOT NULL DEFAULT 'none',
+    -- Canonical metadata (nullable so custom/unknown exercises still work)
+    exercise_type VARCHAR(20),
+    rep_range_min INTEGER,
+    rep_range_max INTEGER,
+    progression_rate FLOAT,
     created_at TIMESTAMP NOT NULL DEFAULT NOW()
 );
 

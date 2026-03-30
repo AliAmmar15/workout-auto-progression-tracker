@@ -2,8 +2,8 @@ PROJECT STATE
 
 Project: Workout Progress Tracker
 
-Current Phase: Phase 6 – Testing
-Current Task: Unit tests
+Current Phase: Phase 6 – Testing (Complete)
+Current Task: Canonical exercise system + advanced progression engine (Complete)
 
 ---
 
@@ -25,6 +25,11 @@ Completed Tasks:
 [x] Frontend integration (Vanilla JS SPA built with Glassmorphism)
 [x] Testing suite (Backend Service Layer Unit Tests)
 [x] Implemented progression and deload system (end-to-end: backend + frontend)
+[x] Canonical exercise normalization system (registry, alias lookup, duplicate prevention)
+[x] Exercise metadata per exercise (type, rep ranges, progression rate)
+[x] User profile fields (weight, height, age, experience level) in DB + schemas
+[x] Rewritten progression engine (rep ranges, user-experience multiplier, bodyweight escalation)
+[x] All 122 tests passing
 
 ---
 
@@ -355,6 +360,162 @@ What was built (ProfileScreen):
 - The Log Out button correctly calls `logout()` from the Zustand store, clearing the token and redirecting the user seamlessly back to AuthScreen.
 
 All UI screens across Phase 8 adhere perfectly to the dark mode aesthetic (#12151e background, #1a1f2e cards, #00d4aa accents) to match the provided MOCKUP designs.
+
+---
+
+Phase 9 – UX and Functionality Overhaul (Complete)
+
+Task: Progress Page UX Redesign – Body-Part Grouping and Filtered Exercise List
+
+**Goals:** Remove the horizontal-scroll exercise pill selector (poor discoverability), replace with a body-part tab grid and filtered vertical exercise list, and ensure only exercises with actual logged workout data are shown.
+
+**Changes applied:**
+
+ProgressionDashboard.tsx:
+- Added `useMemo` to React import
+- Added `MUSCLE_TO_BODY_PART` constant: maps backend `muscle_group` values (`Chest`, `Back`, `Legs`, `Shoulders`, `Biceps`, `Triceps`, `Core`) to 6 display tabs (Biceps+Triceps both → `Arms`)
+- Added `BODY_PART_ORDER = ['Chest','Back','Legs','Shoulders','Arms','Core']` for deterministic tab ordering
+- Added `bodyPartFor(muscleGroup)` helper function
+- Added `selectedBodyPart: string` state (initialized `''`, auto-resolved after data loads)
+- Rewrote `useFocusEffect` to auto-select the first body part that has logged data on load; preserves current selection if it still has data
+- Added three `useMemo` derived values:
+  - `usedIds`: `Set<number>` of exercise IDs that appear in at least one logged workout set — exercises with no history are never shown
+  - `availableBodyParts`: `BODY_PART_ORDER` filtered to body parts that have at least one exercise in `usedIds`
+  - `exercisesForPart`: exercises matching `selectedBodyPart` AND present in `usedIds`
+- Replaced horizontal `<ScrollView>` pill selector with:
+  - Empty state view when `availableBodyParts.length === 0` ("No workouts logged yet")
+  - Body-part tab grid: `flexDirection:'row', flexWrap:'wrap'` — all tabs visible, no scrolling
+  - Vertical exercise list below tabs; tapping an exercise toggles the detail section (tap again to collapse)
+  - Detail section (trend card + recent sets + recommendation) renders inline below the list when an exercise is selected
+- Removed styles: `pillScroll`, `pillContent`, `pill`, `pillActive`, `pillText`, `pillTextActive`
+- Added styles: `bodyPartGrid`, `bodyPartTab`, `bodyPartTabActive`, `bodyPartTabText`, `bodyPartTabTextActive`, `exRow`, `exRowActive`, `exRowName`, `exRowMeta`, `exRowChevron`
+
+TypeScript check: `npx tsc --noEmit` → NO_ERRORS
+
+---
+
+Task: UX and Functionality Overhaul – Navigation, Progress, and History Pages
+
+**Goals:** Remove the unused Plans tab, fix the navigation color tokens, reduce to 5 tabs, redesign the Progress screen with a summary strip and single-exercise focus, and add expand/collapse to the History screen.
+
+**Changes applied:**
+
+App.tsx:
+- Removed `PlansScreen` import and its `Tab.Screen` entry
+- Changed tab icon mapping: removed `Progression` and `Plans` entries, added `Progress`
+- Fixed tab bar color tokens: `tabBarActiveTintColor` → `#E8522A`, `tabBarInactiveTintColor` → `#52576B`, `backgroundColor` → `#0D0E12`, `borderTopColor` → `#1E2028`, `headerTintColor` → `#F5F0E8`
+- Replaced 6-tab layout (Home/Log/History/Progression/Plans/Profile) with 5-tab layout (Home/Log/History/Progress/Profile)
+- All 5 screens use `headerShown: false`
+
+ProgressionDashboard.tsx (full rewrite):
+- Added `useFocusEffect` for data refresh on navigation
+- Added parallel fetch of `getWorkouts(token)` alongside exercises on load
+- Added summary strip at top: total workouts, most-improved exercise (computed from volume delta across sessions), and last session date
+- Added `TrendBar` sparkline component: bar chart of recent set volumes with the latest bar highlighted in accent color
+- Single exercise selected at a time (pre-selects first exercise that has logged sets)
+- Trend card shows: trend word (IMPROVING/STABLE/REGRESSING), PLATEAU/PR badges, last outcome; sparkline below
+- Recent sets card: set index, weight, reps, volume per set; latest set highlighted
+- Recommendation card: large weight × reps numbers; left border green (target) or amber (deload)
+- Updated styles to match editorial design system throughout
+
+WorkoutHistoryScreen.tsx (partial rewrite):
+- Removed `getExerciseRecommendation` and `RecommendationResponse` imports (eliminates N+1 API calls on load)
+- Removed `recommendations` state
+- Added `expandedIds: Set<number>` state for per-card expand/collapse
+- Added `toggleExpanded(id)` helper
+- Card headers are now `TouchableOpacity` with ▲/▼ chevron; always show date, notes, and summary badges (exercises / sets / volume)
+- Card body (exercise blocks + sets) only renders when `expandedIds.has(item.id)` → collapsed by default
+- Removed inline recommendation rows entirely (recommendations belong on Progress tab)
+- Updated title from "Workout History" to "History." for editorial consistency
+- Styled `cardBody`, `exBlock`, and cleaned up styles (removed `recRow`/`recIcon`/`recLabel`/`recReason` styles)
+
+TypeScript check: `npx tsc --noEmit` → NO_ERRORS
+
+---
+
+Task: Canonical Exercise System + Advanced Progression Engine
+
+What was built:
+
+1. Exercise Registry (backend/app/utils/exercise_registry.py) — NEW FILE
+   - Pure-Python dict of 90+ canonical exercises across 9 muscle groups (Chest, Back, Legs, Shoulders, Biceps, Triceps, Core, Full Body, Cardio)
+   - Each entry has: display_name, aliases list, exercise_type ("compound"/"isolation"/"bodyweight"), muscle_group, equipment, rep_range_min, rep_range_max, progression_rate
+   - ALIAS_TO_CANONICAL reverse lookup dict compiled at import time for O(1) alias resolution
+   - normalize_exercise_name(raw) → canonical display name or None
+   - get_exercise_metadata(canonical_name) → full metadata dict or None
+
+2. Database Schema Changes
+   - exercises table: +4 nullable columns (exercise_type VARCHAR 20, rep_range_min INT, rep_range_max INT, progression_rate FLOAT)
+   - users table: +4 nullable columns (weight_lbs FLOAT, height_inches FLOAT, age INT, experience_level VARCHAR 20)
+   - init.sql updated for fresh installs; alter_schema.sql (NEW FILE) for live database migration (8 ADD COLUMN IF NOT EXISTS statements)
+
+3. Model Updates
+   - Exercise model: 4 new Optional[...] mapped columns
+   - User model: 4 new Optional[...] mapped columns (weight_lbs, height_inches, age, experience_level)
+
+4. Schema Updates (all backward-compatible, new fields Optional with None defaults)
+   - ExerciseCreate/Update/Response: +exercise_type, rep_range_min, rep_range_max, progression_rate
+   - UserCreate/Update/Response: +weight_lbs, height_inches, age, experience_level
+   - ProgressionResponse: +exercise_type; last_outcome now includes "near_success"
+   - RecommendationResponse: action, next_weight, target_reps (range string), reasoning, is_deload
+
+5. Exercise Service (exercise_service.py)
+   - create_exercise() now normalizes input name via normalize_exercise_name(); if canonical match found, auto-populates metadata from registry and raises 409 if canonical already in DB
+   - New get_exercise_by_name(db, name) for fuzzy/alias lookup
+   - New internal _lookup_canonical(db, canonical_name) helper
+
+6. Progression Service (progression_service.py) — FULL REWRITE
+   - evaluate_workout_success_legacy(actual, target) — preserved old function under new name
+   - evaluate_rep_range(actual, rep_min, rep_max) → "success"/"near_success"/"failure"
+   - get_user_progression_multiplier(experience_level) → beginner=2.0, intermediate=1.0, advanced=0.6
+   - calculate_next_weight(weight, outcome, progression_rate=0.025, user_multiplier=1.0)
+   - detect_plateau() updated: "near_success" now counts as non-success
+   - detect_bodyweight_escalation(reps, threshold=20)
+   - analyze_progression() uses rep ranges from exercise metadata (defaults 5-12)
+   - generate_recommendation() returns {action, next_weight, target_reps, reasoning, is_deload}
+   - compute_post_workout_progression() delegates entirely to generate_recommendation()
+
+7. Auth Service: register() now passes profile fields to User constructor
+
+8. Routes
+   - GET /api/v1/exercises/lookup?name=... → exercise lookup by alias/canonical name
+   - GET /api/v1/progression/{exercise_id}/recommendation now passes user experience level
+
+9. Seed Script (seed_exercises.py): rewrote to pull from CANONICAL_EXERCISES registry dynamically
+
+10. Tests: 122 passing
+    - test_exercise_service.py: preserved existing tests + TestExerciseNormalization (10 new tests)
+    - test_progression_service.py: updated imports, rewrote all test classes for new API, added TestEvaluateRepRange, TestGetUserProgressionMultiplier, TestDetectBodyweightEscalation
+    - test_regression.py: updated all 5 scenarios for new rep-range logic and 2.5% default rate
+
+---
+
+Task: Fixed Progress Screen Data Binding Bug
+
+**Root Cause:**
+The `RecommendationResponse` TypeScript interface in `api.ts` declared `recommended_weight: number` and `recommended_reps: number`, but the backend `RecommendationResponse` Pydantic schema returns `next_weight` and `target_reps`. The component accessed the wrong property names, which resolved to `undefined` in JavaScript/TypeScript. React Native rendered the surrounding literal unit labels ("lbs × reps") with empty values in place of numbers — appearing as "lbs × reps" on screen.
+
+**Fix Implemented:**
+
+1. `frontend/WorkoutTracker/src/services/api.ts` — Updated `RecommendationResponse` interface:
+   - `recommended_weight: number` → `next_weight: number`
+   - `recommended_reps: number` → `target_reps: number | string` (backend can return int or range string e.g. "8-12")
+   - Added missing `action: string` field to match backend schema
+
+2. `frontend/WorkoutTracker/src/screens/ProgressionDashboard.tsx` — Fixed field access in recommendation card:
+   - `recommendation.recommended_weight` → `recommendation.next_weight`
+   - `recommendation.recommended_reps` → `recommendation.target_reps`
+   - Added fallback branch: when exercise is selected but no progression/recommendation data is available, renders "No progression data available" inside a card using existing `emptyTitle`/`emptyBody` styles instead of rendering nothing
+
+**Files Modified:**
+- `frontend/WorkoutTracker/src/services/api.ts`
+- `frontend/WorkoutTracker/src/screens/ProgressionDashboard.tsx`
+
+**Impact on UI:**
+- Recommendation card now displays actual values (e.g., "135 lbs × 8 reps") instead of "lbs × reps"
+- Weight is rendered at 44px/900 weight; reps at 32px/800 weight — both visually prominent
+- Reasoning text continues to appear below in muted style
+- Exercises with no logged data now show a clear "No progression data available" message rather than a blank area
 
 ---
 

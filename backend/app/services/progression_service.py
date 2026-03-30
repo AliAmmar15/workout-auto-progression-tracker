@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 
@@ -8,12 +8,26 @@ from app.models.exercise import Exercise
 
 
 # ---------------------------------------------------------------------------
+# Constants
+# ---------------------------------------------------------------------------
+
+# Rep threshold above which bodyweight exercises should suggest adding weight
+_BODYWEIGHT_HIGH_REP_THRESHOLD = 20
+
+# Default rep range for exercises that have no metadata
+_DEFAULT_REP_MIN = 5
+_DEFAULT_REP_MAX = 12
+_DEFAULT_PROGRESSION_RATE = 0.025
+
+
+# ---------------------------------------------------------------------------
 # Pure functions — no DB access, fully deterministic, independently testable
 # ---------------------------------------------------------------------------
 
-def evaluate_workout_success(actual_reps: int, target_reps: int) -> str:
+def evaluate_workout_success_legacy(actual_reps: int, target_reps: int) -> str:
     """
-    Compare actual reps performed to target reps.
+    Legacy single-target evaluation (kept for backward compatibility with
+    existing tests).  Compares actual reps to a fixed target.
 
     Returns:
         'success'  – all target reps met (0 missed)
@@ -29,47 +43,117 @@ def evaluate_workout_success(actual_reps: int, target_reps: int) -> str:
         return "failure"
 
 
-def calculate_next_weight(current_weight: float, outcome: str) -> float:
+def evaluate_rep_range(actual_reps: int, rep_min: int, rep_max: int) -> str:
     """
-    Determine next session's target weight based on the workout outcome.
+    Evaluate reps against a target range.
 
-    Rules (spec-compliant):
-        success  → +5%   (within the 2.5–5% range; 5% is standard)
-        partial  → maintain (0% change)
-        failure  → −5%
+    Returns:
+        'success'      – actual >= rep_max  (hit the top of the range)
+        'near_success' – rep_min <= actual < rep_max  (within range, not max)
+        'failure'      – actual < rep_min  (below the bottom of the range)
+    """
+    if actual_reps >= rep_max:
+        return "success"
+    elif actual_reps >= rep_min:
+        return "near_success"
+    else:
+        return "failure"
+
+
+def get_user_progression_multiplier(experience_level: Optional[str]) -> float:
+    """
+    Return a multiplier applied to the progression rate based on experience.
+
+    Beginners progress faster; advanced lifters progress slower.
+        beginner     → 2.0x
+        intermediate → 1.0x
+        advanced     → 0.6x
+        None/unknown → 1.0x (safe default)
+    """
+    multipliers = {
+        "beginner": 2.0,
+        "intermediate": 1.0,
+        "advanced": 0.6,
+    }
+    return multipliers.get((experience_level or "").lower(), 1.0)
+
+
+def calculate_next_weight(
+    current_weight: float,
+    outcome: str,
+    progression_rate: float = _DEFAULT_PROGRESSION_RATE,
+    user_multiplier: float = 1.0,
+) -> float:
+    """
+    Determine next session's target weight based on outcome.
+
+    Rules:
+        success      → +rate * multiplier  (e.g. +2.5% default)
+        near_success → maintain (0% change)
+        failure      → -rate * multiplier
+        partial      → maintain (legacy alias for near_success)
 
     Returns the new weight rounded to 2 decimal places.
     """
+    effective_rate = progression_rate * user_multiplier
     if outcome == "success":
-        return round(current_weight * 1.05, 2)
-    elif outcome == "failure":
-        return round(current_weight * 0.95, 2)
-    else:  # partial
+        return round(current_weight * (1 + effective_rate), 2)
+    elif outcome in ("failure",):
+        return round(current_weight * (1 - effective_rate), 2)
+    else:  # "near_success" or legacy "partial"
         return round(current_weight, 2)
 
 
 def detect_plateau(session_outcomes: List[str]) -> bool:
     """
-    Detect a plateau: last 3 consecutive outcomes are all non-success
-    (i.e., 'partial' or 'failure'), indicating the lifter is stuck.
+    Detect a plateau: last 3 consecutive outcomes are all non-success.
+    Non-success includes 'partial', 'near_success', and 'failure'.
 
     Returns True if a plateau is detected, False otherwise.
     """
     if len(session_outcomes) < 3:
         return False
     last_three = session_outcomes[-3:]
-    return all(o in ("partial", "failure") for o in last_three)
+    return all(o != "success" for o in last_three)
+
+
+def detect_bodyweight_escalation(
+    reps: int,
+    threshold: int = _BODYWEIGHT_HIGH_REP_THRESHOLD,
+) -> bool:
+    """
+    Return True if reps exceed the bodyweight escalation threshold.
+    When True, the system should suggest adding external weight.
+    """
+    return reps > threshold
+
+
+# ---------------------------------------------------------------------------
+# Internal helpers
+# ---------------------------------------------------------------------------
+
+def _get_rep_range(exercise: Exercise):
+    """Return (rep_min, rep_max) from exercise metadata or defaults."""
+    rep_min = exercise.rep_range_min if exercise.rep_range_min is not None else _DEFAULT_REP_MIN
+    rep_max = exercise.rep_range_max if exercise.rep_range_max is not None else _DEFAULT_REP_MAX
+    return rep_min, rep_max
+
+
+def _build_target_reps_str(rep_min: int, rep_max: int) -> str:
+    """Return a display string like '8-12' for the target rep range."""
+    return f"{rep_min}-{rep_max}"
 
 
 # ---------------------------------------------------------------------------
 # Orchestration functions — use pure functions above + DB access
 # ---------------------------------------------------------------------------
 
-def analyze_progression(db: Session, user_id: int, exercise_id: int, target_reps: int = 5):
+def analyze_progression(db: Session, user_id: int, exercise_id: int):
     """
-    Analyze recent workout sets to determine progression using reps-based outcome evaluation.
+    Analyze recent workout sets to determine progression.
 
-    Each set is evaluated against target_reps via evaluate_workout_success().
+    Uses evaluate_rep_range() against the exercise's rep_range from DB
+    (falls back to defaults if the exercise has no metadata).
     Plateau is detected via detect_plateau() across the last 3 session outcomes.
     """
     exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
@@ -88,6 +172,7 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int, target_reps
         return {
             "exercise_id": exercise_id,
             "exercise_name": exercise.name,
+            "exercise_type": exercise.exercise_type,
             "recent_sets": [],
             "trend": "stable",
             "plateau_detected": False,
@@ -95,27 +180,24 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int, target_reps
             "last_outcome": None,
         }
 
+    rep_min, rep_max = _get_rep_range(exercise)
     recent_sets = [{"weight": s.weight, "reps": s.reps} for s in sets[-5:]]
 
-    # Evaluate outcome for each recent set using the pure function
     outcomes = [
-        evaluate_workout_success(s["reps"], target_reps)
+        evaluate_rep_range(s["reps"], rep_min, rep_max)
         for s in recent_sets
     ]
 
-    # Derive human-readable trend from outcomes
     last_outcome = outcomes[-1] if outcomes else None
     if last_outcome == "success":
         trend = "improving"
-    elif last_outcome == "partial":
+    elif last_outcome == "near_success":
         trend = "stable"
     else:
         trend = "regressing"
 
-    # Detect plateau using the pure function
     plateau_detected = detect_plateau(outcomes)
 
-    # PR detection: latest weight strictly greater than all previous
     is_pr = False
     if len(sets) == 1:
         is_pr = True
@@ -127,6 +209,7 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int, target_reps
     return {
         "exercise_id": exercise_id,
         "exercise_name": exercise.name,
+        "exercise_type": exercise.exercise_type,
         "recent_sets": recent_sets,
         "trend": trend,
         "plateau_detected": plateau_detected,
@@ -135,118 +218,136 @@ def analyze_progression(db: Session, user_id: int, exercise_id: int, target_reps
     }
 
 
-def compute_post_workout_progression(db: Session, user_id: int, exercise_id: int, target_reps: int = 5) -> dict:
+def generate_recommendation(
+    db: Session,
+    user_id: int,
+    exercise_id: int,
+    user_experience: Optional[str] = None,
+) -> dict:
     """
-    Compute an action-oriented progression result for the post-workout API response.
+    Generate an action-oriented recommendation for the next workout.
 
-    Called immediately after a workout is saved so the newly committed sets are
-    included in the analysis.  Returns a flat dict suitable for serialisation:
+    Logic (in priority order):
+      1. Bodweight escalation (reps > 20) → action='add_weight'
+      2. Plateau (3 non-success) → action='deload' (-10%)
+      3. success → action='increase' (use progression_rate + user multiplier)
+      4. near_success → action='maintain'
+      5. failure → action='decrease'
 
+    Returns:
         {
             "exercise_id":   int,
-            "exercise_name": str,
-            "action":        "increase" | "maintain" | "decrease" | "deload",
+            "action":        str,
             "next_weight":   float,
+            "target_reps":   int | str,
             "reasoning":     str,
+            "is_deload":     bool,
         }
-
-    Reuses existing pure functions (calculate_next_weight, detect_plateau) and
-    the DB orchestrator (analyze_progression) — no logic is duplicated.
     """
-    analysis = analyze_progression(db, user_id, exercise_id, target_reps)
+    analysis = analyze_progression(db, user_id, exercise_id)
+    exercise = db.query(Exercise).filter(Exercise.id == exercise_id).first()
+    rep_min, rep_max = _get_rep_range(exercise)
+    target_reps_str = _build_target_reps_str(rep_min, rep_max)
+    progression_rate = (
+        exercise.progression_rate
+        if exercise.progression_rate is not None
+        else _DEFAULT_PROGRESSION_RATE
+    )
+    user_multiplier = get_user_progression_multiplier(user_experience)
     recent = analysis["recent_sets"]
 
     if not recent:
         return {
             "exercise_id": exercise_id,
-            "exercise_name": analysis["exercise_name"],
             "action": "maintain",
             "next_weight": 0.0,
+            "target_reps": target_reps_str,
             "reasoning": "No previous data. Start with a comfortable weight.",
-        }
-
-    last_weight = recent[-1]["weight"]
-    plateau_detected = analysis["plateau_detected"]
-    last_outcome = analysis["last_outcome"]
-
-    # Plateau takes priority → deload (−10%)
-    if plateau_detected:
-        next_weight = round(last_weight * 0.9, 2)
-        return {
-            "exercise_id": exercise_id,
-            "exercise_name": analysis["exercise_name"],
-            "action": "deload",
-            "next_weight": next_weight,
-            "reasoning": f"Plateau detected across 3 sessions. Deload to {next_weight} lbs for recovery.",
-        }
-
-    next_weight = calculate_next_weight(last_weight, last_outcome)
-
-    action_map = {
-        "success": "increase",
-        "partial": "maintain",
-        "failure": "decrease",
-    }
-    reasoning_map = {
-        "success": f"All target reps met. Increase to {next_weight} lbs next session.",
-        "partial": f"≤2 reps missed. Maintain {next_weight} lbs next session.",
-        "failure": f">2 reps missed. Reduce to {next_weight} lbs next session.",
-    }
-
-    return {
-        "exercise_id": exercise_id,
-        "exercise_name": analysis["exercise_name"],
-        "action": action_map.get(last_outcome, "maintain"),
-        "next_weight": next_weight,
-        "reasoning": reasoning_map.get(last_outcome, f"Maintain {next_weight} lbs."),
-    }
-
-
-def generate_recommendation(db: Session, user_id: int, exercise_id: int, target_reps: int = 5):
-    """
-    Generate next workout recommendation using spec-compliant pure functions.
-
-    Deload path  : plateau detected → −10% (recovery week)
-    Normal path  : delegates to calculate_next_weight() with the latest outcome
-    """
-    analysis = analyze_progression(db, user_id, exercise_id, target_reps)
-    recent = analysis["recent_sets"]
-
-    if not recent:
-        return {
-            "exercise_id": exercise_id,
-            "recommended_weight": 0.0,
-            "recommended_reps": target_reps,
-            "reasoning": "No data yet. Start with a comfortable weight.",
             "is_deload": False,
         }
 
     last_weight = recent[-1]["weight"]
+    last_reps = recent[-1]["reps"]
     last_outcome = analysis["last_outcome"]
     plateau_detected = analysis["plateau_detected"]
+    is_bodyweight = exercise.exercise_type == "bodyweight"
 
-    # Plateau → deload (−10%) takes priority over normal progression
-    if plateau_detected:
+    # 1. Bodyweight escalation: reps are too high → suggest adding weight
+    if is_bodyweight and detect_bodyweight_escalation(last_reps):
         return {
             "exercise_id": exercise_id,
-            "recommended_weight": round(last_weight * 0.9, 2),
-            "recommended_reps": target_reps,
-            "reasoning": "Plateau detected across 3 sessions. Deloading by 10% for recovery.",
+            "action": "add_weight",
+            "next_weight": last_weight,
+            "target_reps": target_reps_str,
+            "reasoning": (
+                f"Reps ({last_reps}) exceed {_BODYWEIGHT_HIGH_REP_THRESHOLD}. "
+                f"Add external weight and target {target_reps_str} reps."
+            ),
+            "is_deload": False,
+        }
+
+    # 2. Plateau → deload
+    if plateau_detected:
+        next_weight = round(last_weight * 0.9, 2)
+        return {
+            "exercise_id": exercise_id,
+            "action": "deload",
+            "next_weight": next_weight,
+            "target_reps": target_reps_str,
+            "reasoning": (
+                f"Plateau detected across 3 sessions. Deload to {next_weight} lbs "
+                f"and target {target_reps_str} reps for recovery."
+            ),
             "is_deload": True,
         }
 
-    # Normal progression: use calculate_next_weight() pure function
-    next_weight = calculate_next_weight(last_weight, last_outcome)
+    # 3-5. Normal progression
+    next_weight = calculate_next_weight(
+        last_weight, last_outcome, progression_rate, user_multiplier
+    )
+
+    action_map = {
+        "success": "increase",
+        "near_success": "maintain",
+        "failure": "decrease",
+    }
     reasoning_map = {
-        "success": f"All target reps met. Increasing weight by 5% ({last_weight} → {next_weight}).",
-        "partial": f"≤2 reps missed. Maintaining weight at {next_weight}.",
-        "failure": f">2 reps missed. Reducing weight by 5% ({last_weight} → {next_weight}).",
+        "success": (
+            f"Hit max rep target ({rep_max}+). "
+            f"Increase to {next_weight} lbs and target {target_reps_str} reps."
+        ),
+        "near_success": (
+            f"Within rep range ({rep_min}-{rep_max}). "
+            f"Maintain {next_weight} lbs and aim for {rep_max} reps."
+        ),
+        "failure": (
+            f"Below rep range (hit {last_reps}, min is {rep_min}). "
+            f"Reduce to {next_weight} lbs and target {target_reps_str} reps."
+        ),
     }
 
     return {
         "exercise_id": exercise_id,
-        "recommended_weight": next_weight,
-        "recommended_reps": target_reps,
-        "reasoning": reasoning_map.get(last_outcome, "Maintain current weight."),
+        "action": action_map.get(last_outcome, "maintain"),
+        "next_weight": next_weight,
+        "target_reps": target_reps_str,
+        "reasoning": reasoning_map.get(
+            last_outcome, f"Maintain {next_weight} lbs."
+        ),
         "is_deload": False,
     }
+
+
+def compute_post_workout_progression(
+    db: Session,
+    user_id: int,
+    exercise_id: int,
+    user_experience: Optional[str] = None,
+) -> dict:
+    """
+    Compute an action-oriented progression result for the post-workout API response.
+
+    Delegates entirely to generate_recommendation() — no logic duplication.
+    Returns a flat dict suitable for serialisation.
+    """
+    return generate_recommendation(db, user_id, exercise_id, user_experience)

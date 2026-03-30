@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import Optional
 
 from sqlalchemy import String, func
 from sqlalchemy.orm import Mapped, mapped_column, relationship
@@ -13,6 +14,11 @@ class User(Base):
     username: Mapped[str] = mapped_column(String(50), unique=True, nullable=False)
     email: Mapped[str] = mapped_column(String(255), unique=True, nullable=False)
     password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    # Physical profile (all optional, backward-compatible)
+    weight_lbs: Mapped[Optional[float]] = mapped_column(nullable=True)
+    height_inches: Mapped[Optional[float]] = mapped_column(nullable=True)
+    age: Mapped[Optional[int]] = mapped_column(nullable=True)
+    experience_level: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     created_at: Mapped[datetime] = mapped_column(
         nullable=False, server_default=func.now()
     )

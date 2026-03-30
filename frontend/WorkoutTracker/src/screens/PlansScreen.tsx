@@ -7,6 +7,8 @@ import {
   StyleSheet,
   TextInput,
   FlatList,
+  Alert,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { BottomTabNavigationProp } from '@react-navigation/bottom-tabs';
@@ -109,8 +111,8 @@ function PlanCard({ day }: { day: PlanDay }) {
           <ExercisePill key={ex} name={ex} />
         ))}
         {!expanded && day.extraCount ? (
-          <View style={[styles.exercisePill, { backgroundColor: '#2a3044' }]}>
-            <Text style={[styles.exercisePillText, { color: '#8892a4' }]}>+{day.extraCount}</Text>
+          <View style={[styles.exercisePill, { backgroundColor: '#0D0E12' }]}>
+            <Text style={[styles.exercisePillText, { color: '#52576B' }]}>+{day.extraCount}</Text>
           </View>
         ) : null}
       </View>
@@ -149,7 +151,7 @@ export default function PlansScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       {/* ── Header ── */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>📅  Workout Plans</Text>
+        <Text style={styles.headerTitle}>Plans.</Text>
         <Text style={styles.headerSubtitle}>Create and manage your training routines</Text>
       </View>
 
@@ -168,7 +170,7 @@ export default function PlansScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search..."
-            placeholderTextColor="#555"
+            placeholderTextColor="#52576B"
             value={search}
             onChangeText={setSearch}
           />
@@ -212,10 +214,22 @@ export default function PlansScreen() {
               <View key={day.id}>
                 <PlanCard day={day} />
                 <TouchableOpacity 
-                   style={[styles.outlineBtn, { marginTop: 8, alignSelf: 'flex-start', borderColor: '#00d4aa' }]}
-                   onPress={() => navigation.navigate('Log')}
+                   style={[styles.outlineBtn, { marginTop: 8, alignSelf: 'flex-start', borderColor: '#E8522A' }]}
+                   onPress={() => {
+                     const message = `Starting "${day.title}".\n\nHead to the Log tab to record today's exercises.`;
+                     if (Platform.OS === 'web') {
+                       window.alert(message);
+                       navigation.navigate('Log');
+                     } else {
+                       Alert.alert('Plan Started 💪', message, [
+                         { text: 'Cancel', style: 'cancel' },
+                         { text: 'Go to Log', onPress: () => navigation.navigate('Log') },
+                       ]);
+                     }
+                   }}
+                   activeOpacity={0.8}
                 >
-                  <Text style={{ color: '#00d4aa', fontSize: 13, fontWeight: '600' }}>▶ Start this Plan</Text>
+                  <Text style={{ color: '#E8522A', fontSize: 13, fontWeight: '600' }}>▶ Start this Plan</Text>
                 </TouchableOpacity>
               </View>
             ))}
@@ -230,33 +244,33 @@ export default function PlansScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT = '#00d4aa';
-const BG = '#12151e';
-const CARD_BG = '#1a1f2e';
-const BORDER = '#252a3a';
-const TEXT_PRIMARY = '#ffffff';
-const TEXT_SECONDARY = '#8892a4';
+const ACCENT = '#E8522A';
+const BG = '#0D0E12';
+const CARD_BG = '#15171D';
+const BORDER = '#1E2028';
+const TEXT_PRIMARY = '#F5F0E8';
+const TEXT_SECONDARY = '#52576B';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: { padding: 16 },
 
   // Header
-  header: { alignItems: 'center', marginBottom: 20, marginTop: 8 },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 4 },
+  header: { alignItems: 'flex-start', marginBottom: 24, marginTop: 8 },
+  headerTitle: { fontSize: 36, fontWeight: '900', color: TEXT_PRIMARY, marginBottom: 4, letterSpacing: -1 },
   headerSubtitle: { fontSize: 13, color: TEXT_SECONDARY },
 
   // Toolbar
   toolbar: { flexDirection: 'row', alignItems: 'center', marginBottom: 16, gap: 10 },
   toolbarLeft: { flexDirection: 'row', gap: 8 },
   outlineBtn: {
-    borderWidth: 1, borderColor: ACCENT, borderRadius: 8,
+    borderWidth: 1, borderColor: ACCENT, borderRadius: 4,
     paddingHorizontal: 12, paddingVertical: 8,
   },
   outlineBtnText: { color: ACCENT, fontSize: 13, fontWeight: '600' },
   searchBox: {
     flex: 1, flexDirection: 'row', alignItems: 'center',
-    backgroundColor: CARD_BG, borderRadius: 8, borderWidth: 1, borderColor: BORDER,
+    backgroundColor: CARD_BG, borderRadius: 4, borderWidth: 1, borderColor: BORDER,
     paddingHorizontal: 10, height: 38,
   },
   searchIcon: { fontSize: 14, marginRight: 6 },
@@ -264,8 +278,8 @@ const styles = StyleSheet.create({
 
   // Group card
   groupCard: {
-    backgroundColor: CARD_BG, borderRadius: 12, borderWidth: 1,
-    borderColor: ACCENT, marginBottom: 12,
+    backgroundColor: CARD_BG, borderRadius: 4, borderWidth: 1,
+    borderColor: BORDER, marginBottom: 12,
   },
   groupHeader: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -293,7 +307,8 @@ const styles = StyleSheet.create({
 
   // Plan card
   planCard: {
-    backgroundColor: CARD_BG, borderRadius: 14,
+    backgroundColor: CARD_BG, borderRadius: 4,
+    borderLeftWidth: 3, borderLeftColor: ACCENT,
     borderWidth: 1, borderColor: BORDER,
     padding: 14, position: 'relative',
   },
@@ -307,8 +322,8 @@ const styles = StyleSheet.create({
   // Exercise pills
   pillsRow: { flexDirection: 'row', flexWrap: 'wrap', gap: 6, marginBottom: 8 },
   exercisePill: {
-    width: 44, height: 44, borderRadius: 8,
-    backgroundColor: '#252a3a', justifyContent: 'center', alignItems: 'center',
+    width: 40, height: 40, borderRadius: 4,
+    backgroundColor: BG, justifyContent: 'center', alignItems: 'center',
     borderWidth: 1, borderColor: BORDER,
   },
   exercisePillText: { color: ACCENT, fontSize: 11, fontWeight: '700' },
@@ -318,7 +333,7 @@ const styles = StyleSheet.create({
   // Plan card action row
   planCardActions: { flexDirection: 'row', justifyContent: 'flex-end', gap: 8 },
   actionBtn: {
-    width: 34, height: 34, borderRadius: 8,
+    width: 34, height: 34, borderRadius: 4,
     borderWidth: 1, borderColor: ACCENT,
     justifyContent: 'center', alignItems: 'center',
   },

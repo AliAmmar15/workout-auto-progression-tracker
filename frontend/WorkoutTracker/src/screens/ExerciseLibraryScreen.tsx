@@ -40,10 +40,6 @@ function ExerciseCard({ exercise }: { exercise: ExerciseResponse }) {
       <View style={styles.exerciseDetails}>
         <Text style={styles.exerciseName} numberOfLines={2}>{exercise.name}</Text>
 
-        {(exercise as any).description ? (
-          <Text style={styles.exerciseDesc} numberOfLines={2}>• {(exercise as any).description}</Text>
-        ) : null}
-
         {exercise.muscle_group ? (
           <Text style={styles.exercisePrimary}>
             <Text style={styles.primaryLabel}>Primary: </Text>
@@ -52,11 +48,7 @@ function ExerciseCard({ exercise }: { exercise: ExerciseResponse }) {
         ) : null}
 
         <View style={styles.exerciseMetaRow}>
-          <Text style={styles.exerciseMeta}>0.0kg</Text>
-          <Text style={styles.exerciseMetaDot}>•</Text>
-          <Text style={styles.exerciseMeta}>{(exercise as any).default_reps ?? 8} reps</Text>
-          <Text style={styles.exerciseMetaDot}>•</Text>
-          <Text style={styles.exerciseMeta}>{(exercise as any).default_sets ?? 3} sets</Text>
+          <Text style={styles.exerciseMeta}>{exercise.equipment}</Text>
         </View>
       </View>
     </View>
@@ -114,7 +106,7 @@ export default function ExerciseLibraryScreen() {
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* ── Header ── */}
         <View style={styles.header}>
-          <Text style={styles.headerTitle}>📚  Exercise Library</Text>
+          <Text style={styles.headerTitle}>Exercises.</Text>
           <Text style={styles.headerSubtitle}>Browse and manage your exercise collection</Text>
         </View>
 
@@ -142,7 +134,7 @@ export default function ExerciseLibraryScreen() {
           <TextInput
             style={styles.searchInput}
             placeholder="Search..."
-            placeholderTextColor="#555"
+            placeholderTextColor="#52576B"
             value={search}
             onChangeText={setSearch}
           />
@@ -205,27 +197,27 @@ export default function ExerciseLibraryScreen() {
 
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
-const ACCENT = '#00d4aa';
-const BG = '#12151e';
-const CARD_BG = '#1a1f2e';
-const BORDER = '#252a3a';
-const TEXT_PRIMARY = '#ffffff';
-const TEXT_SECONDARY = '#8892a4';
+const ACCENT = '#E8522A';
+const BG = '#0D0E12';
+const CARD_BG = '#15171D';
+const BORDER = '#1E2028';
+const TEXT_PRIMARY = '#F5F0E8';
+const TEXT_SECONDARY = '#52576B';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
   content: { padding: 16 },
 
   // Header
-  header: { alignItems: 'center', marginBottom: 20, marginTop: 8 },
-  headerTitle: { fontSize: 24, fontWeight: '800', color: TEXT_PRIMARY, marginBottom: 4 },
+  header: { alignItems: 'flex-start', marginBottom: 24, marginTop: 8 },
+  headerTitle: { fontSize: 36, fontWeight: '900', color: TEXT_PRIMARY, marginBottom: 4, letterSpacing: -1 },
   headerSubtitle: { fontSize: 13, color: TEXT_SECONDARY },
 
   // Toolbar
   toolbar: { marginBottom: 10 },
   toolbarLeft: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
   outlineBtn: {
-    borderWidth: 1, borderColor: ACCENT, borderRadius: 8,
+    borderWidth: 1, borderColor: ACCENT, borderRadius: 4,
     paddingHorizontal: 12, paddingVertical: 8,
   },
   outlineBtnText: { color: ACCENT, fontSize: 13, fontWeight: '600' },
@@ -233,7 +225,7 @@ const styles = StyleSheet.create({
   // Search
   searchBox: {
     flexDirection: 'row', alignItems: 'center',
-    backgroundColor: CARD_BG, borderRadius: 8, borderWidth: 1, borderColor: BORDER,
+    backgroundColor: CARD_BG, borderRadius: 4, borderWidth: 1, borderColor: BORDER,
     paddingHorizontal: 12, height: 40, marginBottom: 12,
   },
   searchIcon: { fontSize: 14, marginRight: 8 },
@@ -242,12 +234,12 @@ const styles = StyleSheet.create({
   // Filter chips
   filterRow: { marginBottom: 14 },
   filterChip: {
-    borderWidth: 1, borderColor: BORDER, borderRadius: 20,
+    borderWidth: 1, borderColor: BORDER, borderRadius: 4,
     paddingHorizontal: 14, paddingVertical: 6, marginRight: 8, backgroundColor: CARD_BG,
   },
   filterChipActive: { backgroundColor: ACCENT, borderColor: ACCENT },
   filterChipText: { color: TEXT_SECONDARY, fontSize: 12, fontWeight: '600' },
-  filterChipTextActive: { color: '#000' },
+  filterChipTextActive: { color: TEXT_PRIMARY, fontWeight: '700' },
 
   // Card grid — 2 columns
   cardGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
@@ -255,7 +247,7 @@ const styles = StyleSheet.create({
   // Exercise card
   exerciseCard: {
     backgroundColor: CARD_BG,
-    borderRadius: 14,
+    borderRadius: 4,
     borderWidth: 1,
     borderColor: BORDER,
     overflow: 'hidden',
@@ -264,17 +256,17 @@ const styles = StyleSheet.create({
 
   // Image area
   exerciseImageBox: {
-    height: 130,
-    backgroundColor: '#252a3a',
+    height: 110,
+    backgroundColor: BG,
     justifyContent: 'center',
     alignItems: 'center',
     position: 'relative',
   },
   exerciseImageOverlay: {
-    width: 64,
-    height: 64,
-    borderRadius: 32,
-    backgroundColor: '#1a2535',
+    width: 56,
+    height: 56,
+    borderRadius: 4,
+    backgroundColor: CARD_BG,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 2,
@@ -285,10 +277,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 8,
     right: 8,
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: '#1a1f2e',
+    width: 26,
+    height: 26,
+    borderRadius: 4,
+    backgroundColor: CARD_BG,
     justifyContent: 'center',
     alignItems: 'center',
     borderWidth: 1,
@@ -313,7 +305,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
     borderWidth: 1,
     borderColor: ACCENT,
-    borderRadius: 10,
+    borderRadius: 4,
     paddingHorizontal: 20,
     paddingVertical: 10,
   },

@@ -13,6 +13,19 @@ import {
 import useAuthStore from '../store/useAuthStore';
 import { getExercises, logWorkout, createExercise, getExerciseRecommendation, ExerciseResponse, WorkoutProgressionItem } from '../services/api';
 
+// ─── Design Tokens ────────────────────────────────────────────────────────────
+
+const C = {
+  bg:      '#0D0E12',
+  surface: '#15171D',
+  accent:  '#E8522A',
+  warm:    '#F5F0E8',
+  muted:   '#52576B',
+  divider: '#1E2028',
+  positive:'#3DBE7A',
+  negative:'#E84A4A',
+};
+
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 type Step = 'muscle' | 'exercises' | 'sets' | 'results';
@@ -175,7 +188,7 @@ export default function WorkoutLogScreen() {
     // Fetch recommendations for all selected exercises in parallel (silently ignore failures)
     const results = await Promise.allSettled(
       selectedExercises.map((se) =>
-        getExerciseRecommendation(token, se.exercise.id).then((r) => ({ id: se.exercise.id, weight: r.recommended_weight })),
+        getExerciseRecommendation(token, se.exercise.id).then((r) => ({ id: se.exercise.id, weight: r.next_weight })),
       ),
     );
     const weights: Record<number, number> = {};
@@ -229,7 +242,7 @@ export default function WorkoutLogScreen() {
   if (fetching) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#6C63FF" />
+        <ActivityIndicator size="large" color={C.accent} />
         <Text style={styles.loadingText}>Connecting to backend…</Text>
       </View>
     );
@@ -306,7 +319,7 @@ export default function WorkoutLogScreen() {
           />
           {search.length > 0 && (
             <TouchableOpacity onPress={() => setSearch('')}>
-              <Text style={{ color: '#555', fontSize: 18, paddingRight: 12 }}>✕</Text>
+              <Text style={{ color: C.muted, fontSize: 18, paddingRight: 12 }}>✕</Text>
             </TouchableOpacity>
           )}
         </View>
@@ -321,7 +334,7 @@ export default function WorkoutLogScreen() {
               activeOpacity={0.8}
             >
               {creating ? (
-                <ActivityIndicator size="small" color="#6C63FF" />
+                <ActivityIndicator size="small" color={C.accent} />
               ) : (
                 <>
                   <Text style={styles.createIcon}>＋</Text>
@@ -405,8 +418,7 @@ export default function WorkoutLogScreen() {
     return (
       <ScrollView style={styles.container} contentContainerStyle={styles.content}>
         <View style={styles.resultsBanner}>
-          <Text style={styles.resultsBannerIcon}>✅</Text>
-          <Text style={styles.resultsBannerTitle}>Workout Saved!</Text>
+          <Text style={styles.resultsBannerTitle}>Saved.</Text>
           <Text style={styles.resultsBannerSub}>Here's your progression for next session</Text>
         </View>
 
@@ -516,7 +528,7 @@ export default function WorkoutLogScreen() {
                 onPress={() => removeSet(se.exercise.id, idx)}
                 style={{ width: 28, alignItems: 'center' }}
               >
-                <Text style={{ color: '#444', fontSize: 14 }}>✕</Text>
+                <Text style={{ color: C.muted, fontSize: 14 }}>✕</Text>
               </TouchableOpacity>
             </View>
           ))}
@@ -528,7 +540,7 @@ export default function WorkoutLogScreen() {
       ))}
 
       <TouchableOpacity style={styles.submitButton} onPress={handleSubmit} disabled={loading}>
-        {loading ? <ActivityIndicator color="#fff" /> : <Text style={styles.submitText}>💾 Save Workout</Text>}
+        {loading ? <ActivityIndicator color={C.warm} /> : <Text style={styles.submitText}>Save Workout →</Text>}
       </TouchableOpacity>
     </ScrollView>
   );
@@ -537,233 +549,146 @@ export default function WorkoutLogScreen() {
 // ─── Styles ───────────────────────────────────────────────────────────────────
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: '#0F0F1A' },
-  content: { padding: 20, paddingBottom: 60 },
-  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#0F0F1A' },
-  loadingText: { color: '#888', marginTop: 12, fontSize: 13 },
-  errorTitle: { color: '#ef4444', fontSize: 15, fontWeight: '600', marginTop: 12 },
-  errorBody: { color: '#888', fontSize: 13, textAlign: 'center', marginTop: 8, paddingHorizontal: 32 },
+  container: { flex: 1, backgroundColor: C.bg },
+  content: { padding: 22, paddingBottom: 60 },
+  centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: C.bg },
+  loadingText: { color: C.muted, marginTop: 12, fontSize: 13 },
+  errorTitle: { color: C.negative, fontSize: 15, fontWeight: '600', marginTop: 12 },
+  errorBody: { color: C.muted, fontSize: 13, textAlign: 'center', marginTop: 8, paddingHorizontal: 32 },
 
   // Step 1
-  title: { fontSize: 28, fontWeight: '800', color: '#fff', lineHeight: 36, marginBottom: 6 },
-  subtitle: { fontSize: 14, color: '#666', marginBottom: 28 },
-  muscleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
+  title: { fontSize: 36, fontWeight: '900', color: C.warm, lineHeight: 40, marginBottom: 6, letterSpacing: -1 },
+  subtitle: { fontSize: 13, color: C.muted, marginBottom: 32 },
+  muscleGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   muscleCard: {
     width: '46.5%',
-    backgroundColor: '#14142A',
-    borderRadius: 18,
-    paddingVertical: 22,
+    backgroundColor: C.surface,
+    borderRadius: 6,
+    paddingVertical: 24,
     alignItems: 'center',
-    borderWidth: 1.5,
+    borderLeftWidth: 3,
   },
-  muscleEmoji: { fontSize: 38, marginBottom: 8 },
-  muscleLabel: { fontSize: 15, fontWeight: '700' },
+  muscleEmoji: { fontSize: 34, marginBottom: 8 },
+  muscleLabel: { fontSize: 14, fontWeight: '700', color: C.warm },
 
   // Step 2
   stepHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingTop: 16,
-    paddingBottom: 10,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 16, paddingTop: 16, paddingBottom: 10,
   },
   stepHeaderFlat: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 18,
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 18,
   },
-  stepTitle: { fontSize: 18, fontWeight: '700', color: '#fff' },
+  stepTitle: { fontSize: 18, fontWeight: '700', color: C.warm },
   backBtn: { paddingVertical: 4 },
-  backBtnText: { color: '#6C63FF', fontSize: 14, fontWeight: '600' },
+  backBtnText: { color: C.accent, fontSize: 14, fontWeight: '600' },
 
   searchWrap: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#1A1A2E',
-    borderRadius: 14,
-    marginHorizontal: 16,
-    marginBottom: 14,
-    borderWidth: 1,
-    borderColor: '#2E2E4A',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: 4, marginHorizontal: 16, marginBottom: 14,
+    borderWidth: 1, borderColor: C.divider,
   },
   searchIcon: { paddingLeft: 12, fontSize: 16 },
-  searchInput: {
-    flex: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 13,
-    color: '#fff',
-    fontSize: 15,
-  },
+  searchInput: { flex: 1, paddingHorizontal: 10, paddingVertical: 13, color: C.warm, fontSize: 15 },
 
   createRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    backgroundColor: '#1A1A2E',
-    borderRadius: 14,
-    padding: 16,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#6C63FF',
+    flexDirection: 'row', alignItems: 'center', gap: 12, backgroundColor: C.surface,
+    borderRadius: 4, padding: 16, marginBottom: 10, borderWidth: 1, borderColor: C.accent,
   },
-  createIcon: { color: '#6C63FF', fontSize: 22, fontWeight: '700' },
-  createName: { color: '#6C63FF', fontSize: 15, fontWeight: '700' },
-  createMeta: { color: '#555', fontSize: 12, marginTop: 2 },
+  createIcon: { color: C.accent, fontSize: 22, fontWeight: '700' },
+  createName: { color: C.accent, fontSize: 15, fontWeight: '700' },
+  createMeta: { color: C.muted, fontSize: 12, marginTop: 2 },
 
   exRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#14142A',
-    borderRadius: 14,
-    padding: 14,
-    marginBottom: 10,
-    borderWidth: 1,
-    borderColor: '#2E2E4A',
+    flexDirection: 'row', alignItems: 'center', backgroundColor: C.surface,
+    borderRadius: 4, padding: 14, marginBottom: 8,
+    borderWidth: 1, borderColor: C.divider,
   },
-  exRowSelected: { backgroundColor: '#1E1035', borderColor: '#6C63FF' },
-  exName: { color: '#ccc', fontSize: 15, fontWeight: '600' },
-  exMeta: { color: '#555', fontSize: 12, marginTop: 3 },
+  exRowSelected: { borderColor: C.accent, borderLeftWidth: 3 },
+  exName: { color: C.warm, fontSize: 15, fontWeight: '600' },
+  exMeta: { color: C.muted, fontSize: 12, marginTop: 3 },
   checkCircle: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    borderWidth: 1.5,
-    borderColor: '#333',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginLeft: 8,
+    width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: C.muted,
+    alignItems: 'center', justifyContent: 'center', marginLeft: 8,
   },
-  checkCircleFilled: { backgroundColor: '#6C63FF', borderColor: '#6C63FF' },
+  checkCircleFilled: { backgroundColor: C.accent, borderColor: C.accent },
 
   emptyState: { alignItems: 'center', marginTop: 60 },
-  emptyTitle: { color: '#888', fontSize: 16, fontWeight: '600' },
-  emptySubtitle: { color: '#555', fontSize: 13, textAlign: 'center', marginTop: 8, paddingHorizontal: 20 },
+  emptyTitle: { color: C.muted, fontSize: 16, fontWeight: '600' },
+  emptySubtitle: { color: C.muted, fontSize: 13, textAlign: 'center', marginTop: 8, paddingHorizontal: 20 },
 
   floatingBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    padding: 16,
-    paddingBottom: 24,
-    backgroundColor: '#0F0F1A',
-    borderTopWidth: 1,
-    borderTopColor: '#1A1A2E',
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    padding: 16, paddingBottom: 24, backgroundColor: C.bg,
+    borderTopWidth: 1, borderTopColor: C.divider,
   },
-  floatingBtn: {
-    backgroundColor: '#6C63FF',
-    borderRadius: 16,
-    padding: 16,
-    alignItems: 'center',
-  },
-  floatingBtnText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  floatingBtn: { backgroundColor: C.accent, borderRadius: 4, padding: 16, alignItems: 'center' },
+  floatingBtnText: { color: C.warm, fontSize: 16, fontWeight: '700' },
 
   // Step 3
   notesInput: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 12,
-    padding: 13,
-    color: '#fff',
-    fontSize: 14,
-    borderWidth: 1,
-    borderColor: '#2E2E4A',
-    marginBottom: 16,
+    backgroundColor: C.surface, borderRadius: 4, padding: 13,
+    color: C.warm, fontSize: 14, borderWidth: 1, borderColor: C.divider, marginBottom: 16,
   },
   exBlock: {
-    backgroundColor: '#14142A',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: '#2E2E4A',
+    backgroundColor: C.surface, borderRadius: 4, padding: 16,
+    marginBottom: 14, borderLeftWidth: 3, borderLeftColor: C.accent,
+    borderWidth: 1, borderColor: C.divider,
   },
   exBlockHeader: { flexDirection: 'row', alignItems: 'flex-start', marginBottom: 14 },
-  exBlockName: { color: '#fff', fontSize: 16, fontWeight: '700' },
-  exBlockMeta: { color: '#555', fontSize: 12, marginTop: 2 },
-  suggestionHint: { color: '#6C63FF', fontSize: 12, marginTop: 4, fontWeight: '600' },
+  exBlockName: { color: C.warm, fontSize: 16, fontWeight: '700' },
+  exBlockMeta: { color: C.muted, fontSize: 12, marginTop: 2 },
+  suggestionHint: { color: C.accent, fontSize: 12, marginTop: 4, fontWeight: '600' },
   removeBtn: { paddingLeft: 8 },
-  removeBtnText: { color: '#444', fontSize: 18 },
+  removeBtnText: { color: C.muted, fontSize: 18 },
 
   tableHeader: { flexDirection: 'row', marginBottom: 8, paddingHorizontal: 2 },
-  tableCell: { flex: 1, color: '#444', fontSize: 10, fontWeight: '700', letterSpacing: 0.5 },
+  tableCell: { flex: 1, color: C.muted, fontSize: 10, fontWeight: '700', letterSpacing: 0.8, textTransform: 'uppercase' },
 
   setRow: { flexDirection: 'row', alignItems: 'center', marginBottom: 8 },
-  setNum: { flex: 0.4, color: '#666', fontSize: 14, fontWeight: '600', textAlign: 'center' },
+  setNum: { flex: 0.4, color: C.muted, fontSize: 14, fontWeight: '600', textAlign: 'center' },
   setInput: {
-    flex: 1,
-    backgroundColor: '#0F0F1A',
-    borderRadius: 10,
-    paddingVertical: 10,
-    paddingHorizontal: 6,
-    color: '#fff',
-    fontSize: 16,
-    textAlign: 'center',
-    marginHorizontal: 4,
-    borderWidth: 1,
-    borderColor: '#2A2A3E',
-    fontWeight: '600',
+    flex: 1, backgroundColor: C.bg, borderRadius: 4,
+    paddingVertical: 10, paddingHorizontal: 6,
+    color: C.warm, fontSize: 16, textAlign: 'center',
+    marginHorizontal: 4, borderWidth: 1, borderColor: C.divider, fontWeight: '600',
   },
 
   addSetBtn: {
-    marginTop: 8,
-    alignItems: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: '#2E2E4A',
+    marginTop: 8, alignItems: 'center', paddingVertical: 10,
+    borderRadius: 4, borderWidth: 1, borderColor: C.divider,
   },
-  addSetBtnText: { color: '#6C63FF', fontSize: 14, fontWeight: '600' },
+  addSetBtnText: { color: C.accent, fontSize: 14, fontWeight: '600' },
 
-  submitButton: {
-    backgroundColor: '#6C63FF',
-    borderRadius: 16,
-    padding: 17,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  submitText: { color: '#fff', fontSize: 16, fontWeight: '700' },
+  submitButton: { backgroundColor: C.accent, borderRadius: 4, padding: 17, alignItems: 'center', marginTop: 8 },
+  submitText: { color: C.warm, fontSize: 16, fontWeight: '700' },
 
   // Step 4 – Results
-  resultsBanner: { alignItems: 'center', marginBottom: 28, marginTop: 8 },
-  resultsBannerIcon: { fontSize: 52, marginBottom: 10 },
-  resultsBannerTitle: { fontSize: 24, fontWeight: '800', color: '#fff' },
-  resultsBannerSub: { fontSize: 14, color: '#888', marginTop: 4 },
+  resultsBanner: { alignItems: 'flex-start', marginBottom: 32, marginTop: 8 },
+  resultsBannerIcon: { fontSize: 40, marginBottom: 12 },
+  resultsBannerTitle: { fontSize: 32, fontWeight: '900', color: C.warm, letterSpacing: -1 },
+  resultsBannerSub: { fontSize: 13, color: C.muted, marginTop: 6 },
 
   progressionCard: {
-    backgroundColor: '#14142A',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 14,
-    borderWidth: 1.5,
+    backgroundColor: C.surface, borderRadius: 4,
+    padding: 16, marginBottom: 12, borderLeftWidth: 3,
+    borderWidth: 1, borderColor: C.divider,
   },
   progressionCardHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
   progressionIcon: { fontSize: 28 },
-  progressionExName: { color: '#fff', fontSize: 15, fontWeight: '700' },
-  progressionAction: { fontSize: 12, fontWeight: '600', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.4 },
-  weightBadge: {
-    borderRadius: 10,
-    borderWidth: 1,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    marginLeft: 4,
-  },
+  progressionExName: { color: C.warm, fontSize: 15, fontWeight: '700' },
+  progressionAction: { fontSize: 11, fontWeight: '700', marginTop: 2, textTransform: 'uppercase', letterSpacing: 0.8 },
+  weightBadge: { borderRadius: 4, borderWidth: 1, paddingHorizontal: 10, paddingVertical: 4, marginLeft: 4 },
   weightBadgeText: { fontSize: 14, fontWeight: '700' },
-  progressionReasoning: { color: '#888', fontSize: 13, lineHeight: 19 },
+  progressionReasoning: { color: C.muted, fontSize: 13, lineHeight: 19 },
 
   noProgressionWrap: { alignItems: 'center', marginTop: 20, marginBottom: 28 },
-  noProgressionText: { color: '#555', fontSize: 14, textAlign: 'center', lineHeight: 22, paddingHorizontal: 16 },
+  noProgressionText: { color: C.muted, fontSize: 14, textAlign: 'center', lineHeight: 22, paddingHorizontal: 16 },
 
   doneButton: {
-    backgroundColor: '#1A1A2E',
-    borderRadius: 14,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-    borderWidth: 1,
-    borderColor: '#6C63FF',
+    borderRadius: 4, padding: 16, alignItems: 'center', marginTop: 8,
+    borderWidth: 1, borderColor: C.accent,
   },
-  doneButtonText: { color: '#6C63FF', fontSize: 15, fontWeight: '700' },
+  doneButtonText: { color: C.accent, fontSize: 15, fontWeight: '700' },
 });
 

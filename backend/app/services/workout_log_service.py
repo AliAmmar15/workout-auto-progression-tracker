@@ -1,7 +1,11 @@
+import logging
+
 from fastapi import HTTPException
 from sqlalchemy.orm import Session, joinedload
 
 from app.models.exercise import Exercise
+
+logger = logging.getLogger(__name__)
 from app.models.workout import Workout
 from app.models.workout_set import WorkoutSet
 from app.schemas.workout_log import WorkoutLogCreate
@@ -86,14 +90,20 @@ def log_workout_with_progression(db: Session, user_id: int, data: WorkoutLogCrea
     workout = log_workout(db, user_id, data)
 
     unique_exercise_ids = list({s.exercise_id for s in data.sets})
+
+    # Build a name lookup so we can inject exercise_name into each progression
+    exercises = db.query(Exercise).filter(Exercise.id.in_(unique_exercise_ids)).all()
+    name_by_id = {e.id: e.name for e in exercises}
+
     progressions = []
     for ex_id in unique_exercise_ids:
         try:
             prog = compute_post_workout_progression(db, user_id, ex_id)
+            prog["exercise_name"] = name_by_id.get(ex_id, "")
             progressions.append(prog)
-        except Exception:
+        except Exception as e:
             # Never fail the log response due to a progression error
-            pass
+            logger.warning("Progression calculation failed for exercise %s: %s", ex_id, e)
 
     return {
         "id": workout.id,

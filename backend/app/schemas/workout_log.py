@@ -12,17 +12,19 @@ class WorkoutLogCreate(BaseModel):
     reducing the number of API calls from N+1 (1 workout + N sets) to 1.
     """
     date: date
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=2000)
     sets: list[WorkoutSetCreate] = Field(..., min_length=1)
 
 
 class WorkoutProgressionItem(BaseModel):
     """Per-exercise progression recommendation returned after a workout is logged."""
     exercise_id: int
-    exercise_name: str
-    action: str          # "increase" | "maintain" | "decrease" | "deload"
+    exercise_name: Optional[str] = None
+    action: str          # "increase" | "maintain" | "decrease" | "deload" | "add_weight"
     next_weight: float
+    target_reps: Optional[str] = None
     reasoning: str
+    is_deload: bool = False
 
 
 class WorkoutLogResponse(BaseModel):

@@ -8,12 +8,12 @@ from pydantic import BaseModel, Field
 
 class WorkoutCreate(BaseModel):
     date: date
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=2000)
 
 
 class WorkoutUpdate(BaseModel):
     date: Optional[date] = None
-    notes: Optional[str] = None
+    notes: Optional[str] = Field(None, max_length=2000)
 
 
 # --- Response schemas ---

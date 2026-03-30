@@ -9,16 +9,18 @@ import AuthScreen from './src/screens/AuthScreen';
 import DashboardScreen from './src/screens/DashboardScreen';
 import WorkoutLogScreen from './src/screens/WorkoutLogScreen';
 import WorkoutHistoryScreen from './src/screens/WorkoutHistoryScreen';
+import ProgressionDashboard from './src/screens/ProgressionDashboard';
 import ProfileScreen from './src/screens/ProfileScreen';
 
 const Tab = createBottomTabNavigator();
 
 function TabIcon({ label, focused }: { label: string; focused: boolean }) {
   const icons: Record<string, string> = {
-    Home: '🏠',
-    Log: '📝',
-    History: '📋',
-    Profile: '👤',
+    Home:     '🏠',
+    Log:      '📝',
+    History:  '📋',
+    Progress: '📊',
+    Profile:  '👤',
   };
   return (
     <Text style={{ fontSize: focused ? 22 : 18 }}>
@@ -51,11 +53,11 @@ export default function App() {
               tabBarIcon: ({ focused }) => (
                 <TabIcon label={route.name} focused={focused} />
               ),
-              tabBarActiveTintColor: '#00d4aa',
-              tabBarInactiveTintColor: '#555',
+              tabBarActiveTintColor: '#E8522A',
+              tabBarInactiveTintColor: '#52576B',
               tabBarStyle: {
-                backgroundColor: '#0F0F1A',
-                borderTopColor: '#1A1A2E',
+                backgroundColor: '#0D0E12',
+                borderTopColor: '#1E2028',
                 paddingBottom: 8,
                 paddingTop: 8,
                 height: 70,
@@ -64,15 +66,16 @@ export default function App() {
                 fontSize: 11,
                 fontWeight: '600',
               },
-              headerStyle: { backgroundColor: '#12151e' },
-              headerTintColor: '#fff',
+              headerStyle: { backgroundColor: '#0D0E12' },
+              headerTintColor: '#F5F0E8',
               headerTitleStyle: { fontWeight: '700' },
             })}
           >
-            <Tab.Screen name="Home" component={DashboardScreen} options={{ title: 'Dashboard', headerShown: false }} />
-            <Tab.Screen name="Log" component={WorkoutLogScreen} options={{ title: 'Log Workout' }} />
-            <Tab.Screen name="History" component={WorkoutHistoryScreen} options={{ title: 'History' }} />
-            <Tab.Screen name="Profile" component={ProfileScreen} options={{ title: 'Profile', headerShown: false }} />
+            <Tab.Screen name="Home"     component={DashboardScreen}     options={{ title: 'Dashboard',   headerShown: false }} />
+            <Tab.Screen name="Log"      component={WorkoutLogScreen}    options={{ title: 'Log Workout', headerShown: false }} />
+            <Tab.Screen name="History"  component={WorkoutHistoryScreen} options={{ title: 'History',     headerShown: false }} />
+            <Tab.Screen name="Progress" component={ProgressionDashboard} options={{ title: 'Progress',    headerShown: false }} />
+            <Tab.Screen name="Profile"  component={ProfileScreen}       options={{ title: 'Profile',     headerShown: false }} />
           </Tab.Navigator>
         </NavigationContainer>
       )}

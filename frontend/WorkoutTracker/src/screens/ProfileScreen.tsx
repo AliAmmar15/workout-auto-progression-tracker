@@ -96,7 +96,7 @@ export default function ProfileScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#00d4aa" />
+        <ActivityIndicator size="large" color="#E8522A" />
         <Text style={styles.loadingText}>Loading profile metrics...</Text>
       </View>
     );
@@ -105,7 +105,7 @@ export default function ProfileScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>Profile</Text>
+        <Text style={styles.headerTitle}>Profile.</Text>
       </View>
 
       <View style={styles.profileCard}>
@@ -145,7 +145,7 @@ export default function ProfileScreen() {
               onChangeText={setHeightCm}
               keyboardType="decimal-pad"
               placeholder="175"
-              placeholderTextColor="#64748b"
+              placeholderTextColor="#52576B"
             />
           </View>
 
@@ -157,7 +157,7 @@ export default function ProfileScreen() {
               onChangeText={setWeightKg}
               keyboardType="decimal-pad"
               placeholder="75"
-              placeholderTextColor="#64748b"
+              placeholderTextColor="#52576B"
             />
           </View>
         </View>
@@ -185,12 +185,12 @@ export default function ProfileScreen() {
   );
 }
 
-const BG = '#12151e';
-const CARD_BG = '#1a1f2e';
-const BORDER = '#252a3a';
-const ACCENT = '#00d4aa';
-const TEXT_PRIMARY = '#ffffff';
-const TEXT_SECONDARY = '#94a3b8';
+const BG = '#0D0E12';
+const CARD_BG = '#15171D';
+const BORDER = '#1E2028';
+const ACCENT = '#E8522A';
+const TEXT_PRIMARY = '#F5F0E8';
+const TEXT_SECONDARY = '#52576B';
 
 const styles = StyleSheet.create({
   container: { flex: 1, backgroundColor: BG },
@@ -198,31 +198,32 @@ const styles = StyleSheet.create({
   centered: { flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: BG },
   loadingText: { marginTop: 10, color: TEXT_SECONDARY },
 
-  header: { marginTop: 8, marginBottom: 20 },
-  headerTitle: { color: TEXT_PRIMARY, fontSize: 28, fontWeight: '800' },
+  header: { marginTop: 8, marginBottom: 24 },
+  headerTitle: { color: TEXT_PRIMARY, fontSize: 36, fontWeight: '900', letterSpacing: -1 },
 
   profileCard: {
     backgroundColor: CARD_BG,
     borderWidth: 1,
     borderColor: BORDER,
-    borderRadius: 16,
+    borderRadius: 4,
+    borderLeftWidth: 3,
+    borderLeftColor: ACCENT,
     padding: 20,
-    alignItems: 'center',
     marginBottom: 16,
   },
   avatar: {
-    width: 74,
-    height: 74,
-    borderRadius: 37,
-    backgroundColor: '#243047',
+    width: 64,
+    height: 64,
+    borderRadius: 4,
+    backgroundColor: BG,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: 12,
     borderWidth: 2,
     borderColor: ACCENT,
   },
-  avatarText: { color: ACCENT, fontSize: 28, fontWeight: '700' },
-  userName: { color: TEXT_PRIMARY, fontSize: 20, fontWeight: '700', marginBottom: 4 },
+  avatarText: { color: ACCENT, fontSize: 24, fontWeight: '800' },
+  userName: { color: TEXT_PRIMARY, fontSize: 22, fontWeight: '800', marginBottom: 4, letterSpacing: -0.5 },
   userEmail: { color: TEXT_SECONDARY, fontSize: 13, marginBottom: 4 },
   userJoinDate: { color: TEXT_SECONDARY, fontSize: 12 },
 
@@ -236,45 +237,45 @@ const styles = StyleSheet.create({
     backgroundColor: CARD_BG,
     borderWidth: 1,
     borderColor: BORDER,
-    borderRadius: 12,
+    borderRadius: 4,
     paddingVertical: 14,
     alignItems: 'center',
   },
-  statValue: { color: ACCENT, fontSize: 19, fontWeight: '800' },
-  statLabel: { color: TEXT_SECONDARY, fontSize: 11, marginTop: 3 },
+  statValue: { color: TEXT_PRIMARY, fontSize: 22, fontWeight: '900', letterSpacing: -0.5 },
+  statLabel: { color: TEXT_SECONDARY, fontSize: 10, marginTop: 3, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.8 },
 
   sectionCard: {
     backgroundColor: CARD_BG,
     borderWidth: 1,
     borderColor: BORDER,
-    borderRadius: 14,
+    borderRadius: 4,
     padding: 16,
     marginBottom: 16,
   },
-  sectionTitle: { color: TEXT_PRIMARY, fontWeight: '700', fontSize: 16, marginBottom: 12 },
+  sectionTitle: { color: TEXT_SECONDARY, fontWeight: '700', fontSize: 10, marginBottom: 14, textTransform: 'uppercase', letterSpacing: 1.2 },
 
   inputRow: { flexDirection: 'row', gap: 10 },
   inputWrap: { flex: 1 },
   inputLabel: { color: TEXT_SECONDARY, fontSize: 12, marginBottom: 6 },
   input: {
-    backgroundColor: '#111827',
+    backgroundColor: BG,
     borderWidth: 1,
-    borderColor: '#334155',
-    borderRadius: 10,
+    borderColor: BORDER,
+    borderRadius: 4,
     color: TEXT_PRIMARY,
     paddingVertical: 10,
     paddingHorizontal: 12,
   },
   bmiResultBox: {
     marginTop: 12,
-    backgroundColor: '#111827',
-    borderRadius: 10,
+    backgroundColor: BG,
+    borderRadius: 4,
     borderWidth: 1,
-    borderColor: '#334155',
+    borderColor: BORDER,
     padding: 14,
     alignItems: 'center',
   },
-  bmiValue: { color: ACCENT, fontSize: 30, fontWeight: '800' },
+  bmiValue: { color: TEXT_PRIMARY, fontSize: 36, fontWeight: '900', letterSpacing: -1 },
   bmiLabel: { color: TEXT_SECONDARY, fontSize: 13, marginTop: 4 },
 
   progressLine: { color: TEXT_PRIMARY, fontSize: 14, marginBottom: 6 },
@@ -282,7 +283,7 @@ const styles = StyleSheet.create({
 
   logoutBtn: {
     backgroundColor: '#ef4444',
-    borderRadius: 12,
+    borderRadius: 4,
     paddingVertical: 14,
     alignItems: 'center',
   },
